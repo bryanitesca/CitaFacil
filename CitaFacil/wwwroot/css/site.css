@@ -1,0 +1,101 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+/* Sidebar Collapsible Styles */
+.sidebar-expanded {
+  width: 16rem; /* w-64 */
+}
+
+.sidebar-collapsed {
+  width: 5rem; /* w-20 - aumentado para que quepa mejor */
+}
+
+.sidebar-collapsed .sidebar-text {
+  display: none;
+}
+
+/* Cuando el sidebar está colapsado, centramos los iconos y ocultamos logo/foto */
+.sidebar-collapsed .sidebar-logo-container {
+  justify-content: center !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.sidebar-collapsed .sidebar-logo-image {
+  width: 2.5rem !important;
+  height: 2.5rem !important;
+  min-width: 2.5rem !important;
+}
+
+.sidebar-collapsed .sidebar-user-container {
+  justify-content: center !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.sidebar-collapsed .sidebar-user-photo {
+  width: 2.5rem !important;
+  height: 2.5rem !important;
+  min-width: 2.5rem !important;
+}
+
+/* Centrar items del menú cuando está colapsado */
+.sidebar-collapsed nav a {
+  justify-content: center !important;
+  padding-left: 0.75rem !important;
+  padding-right: 0.75rem !important;
+}
+
+.main-content-expanded {
+  margin-left: 0;
+}
+
+.main-content-collapsed {
+  margin-left: 0;
+}
+
+/* Consistent page margins */
+.page-content {
+  padding: 1.5rem;
+  padding-top: 2rem;
+}
+
+/* Ensure consistent spacing for all pages */
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.page-header h1 {
+  font-size: 1.875rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
+  color: var(--bs-secondary-color);
+  text-align: end;
+}
+
+.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
+  text-align: start;
+}

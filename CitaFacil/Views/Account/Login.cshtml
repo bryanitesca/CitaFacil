@@ -1,0 +1,86 @@
+﻿@model CitaFacil.ViewModels.Account.LoginViewModel
+
+@{
+    Layout = "_LoginLayout";
+    ViewData["Title"] = "Iniciar sesión";
+}
+
+<div class="flex flex-col items-center justify-center mb-8 login-shell">
+    <a asp-controller="Home" asp-action="Index" class="flex flex-col items-center group transition-opacity duration-300">
+        <svg class="w-16 h-16 text-primary group-hover:opacity-80" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path clip-rule="evenodd" d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z" fill-rule="evenodd"></path>
+        </svg>
+        <p class="text-4xl font-bold leading-tight tracking-tighter mt-4 text-center group-hover:text-primary">CitaFácil</p>
+    </a>
+</div>
+
+<div class="flex flex-wrap justify-between gap-3 p-4 text-center">
+    <div class="flex w-full flex-col gap-2">
+        <p class="text-4xl font-black leading-tight tracking-[-0.033em]">¡Bienvenido de nuevo!</p>
+        <p class="text-base font-normal leading-normal">Introduce tus datos para continuar.</p>
+    </div>
+</div>
+
+<form asp-controller="Account" asp-action="Login" method="post" class="flex max-w-[480px] flex-col gap-4 px-4 py-3 login-form">
+    @Html.AntiForgeryToken()
+
+    <div asp-validation-summary="ModelOnly" class="text-accent-error text-sm p-2 rounded-lg bg-accent-error/10"></div>
+
+    <label asp-for="identificador" class="flex flex-col min-w-40 flex-1">
+        <span class="text-base font-medium leading-normal pb-2">Correo o usuario</span>
+        <input asp-for="identificador" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg focus:outline-0 focus:ring-0 border-none bg-zinc-100 dark:bg-zinc-800 h-14 placeholder:text-zinc-500 dark:placeholder:text-zinc-400 p-4 text-base font-normal leading-normal" placeholder="ejemplo@correo.com" />
+        <span asp-validation-for="identificador" class="text-accent-error text-sm mt-1"></span>
+    </label>
+
+    <label asp-for="contraseña" class="flex flex-col min-w-40 flex-1">
+        <span class="text-base font-medium leading-normal pb-2">Contraseña</span>
+        <div class="flex w-full flex-1 items-stretch rounded-lg">
+            <input asp-for="contraseña" id="password-input" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg focus:outline-0 focus:ring-0 border-none bg-zinc-100 dark:bg-zinc-800 h-14 placeholder:text-zinc-500 dark:placeholder:text-zinc-400 p-4 rounded-r-none border-r-0 pr-2 text-base font-normal leading-normal" placeholder="Ingresa tu contraseña" />
+            <button type="button" id="password-toggle" class="flex border-none bg-zinc-100 dark:bg-zinc-800 items-center justify-center px-4 rounded-r-lg border-l-0 text-zinc-500 dark:text-zinc-400">
+                <span class="material-symbols-outlined">visibility</span>
+            </button>
+        </div>
+        <span asp-validation-for="contraseña" class="text-accent-error text-sm mt-1"></span>
+    </label>
+
+    <div class="flex items-center justify-center px-4">
+        <a asp-controller="Account" asp-action="ProtoLogin" class="text-sm font-medium leading-normal text-primary hover:underline">¿Olvidaste tu contraseña?</a>
+    </div>
+
+    <div class="flex px-4 py-3">
+        <button type="submit" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-14 px-5 flex-1 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em]">
+            <span class="truncate">Iniciar sesión</span>
+        </button>
+    </div>
+</form>
+
+<div class="text-center mt-6 px-4">
+    <p class="text-base text-zinc-500 dark:text-zinc-400">
+        ¿No tienes una cuenta? <a asp-action="Register" class="font-medium text-primary hover:underline">Regístrate aquí</a>
+    </p>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const passwordInput = document.getElementById('password-input');
+            const passwordToggle = document.getElementById('password-toggle');
+
+            if (passwordToggle && passwordInput) {
+                passwordToggle.addEventListener('click', function () {
+                    const icon = this.querySelector('span');
+                    const isPassword = passwordInput.getAttribute('type') === 'password';
+                    passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+                    if (icon) {
+                        icon.textContent = isPassword ? 'visibility_off' : 'visibility';
+                    }
+                });
+            }
+        });
+    </script>
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+

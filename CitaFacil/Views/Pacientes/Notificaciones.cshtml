@@ -1,0 +1,177 @@
+@{
+    Layout = "_PatientLayout";
+    ViewData["Title"] = "Notificaciones";
+}
+
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Notificaciones</h1>
+            <p class="text-sm text-gray-500 mt-1">Todas tus notificaciones y avisos del sistema</p>
+        </div>
+        <button id="btn-mark-all-read-page" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark font-semibold text-sm hidden">
+            Marcar todas como leídas
+        </button>
+    </div>
+
+    <!-- Filtros -->
+    <div class="flex gap-2">
+        <button class="filter-btn px-4 py-2 rounded-lg text-sm font-semibold bg-primary text-white" data-filter="todas">
+            Todas
+        </button>
+        <button class="filter-btn px-4 py-2 rounded-lg text-sm font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300" data-filter="no-leidas">
+            No leídas
+        </button>
+        <button class="filter-btn px-4 py-2 rounded-lg text-sm font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300" data-filter="leidas">
+            Leídas
+        </button>
+    </div>
+
+    <!-- Lista de notificaciones -->
+    <div id="notifications-list" class="space-y-3">
+        <!-- Loading state -->
+        <div class="text-center py-12">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-primary border-t-transparent"></div>
+            <p class="text-gray-500 mt-2">Cargando notificaciones...</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let currentFilter = 'todas';
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarTodasNotificaciones();
+            
+            // Filtros
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-btn').forEach(b => {
+                        b.classList.remove('bg-primary', 'text-white');
+                        b.classList.add('bg-gray-200', 'text-gray-700');
+                    });
+                    this.classList.remove('bg-gray-200', 'text-gray-700');
+                    this.classList.add('bg-primary', 'text-white');
+                    
+                    currentFilter = this.dataset.filter;
+                    cargarTodasNotificaciones();
+                });
+            });
+            
+            // Marcar todas como leídas
+            document.getElementById('btn-mark-all-read-page').addEventListener('click', function() {
+                marcarTodasLeidas();
+            });
+        });
+        
+        async function cargarTodasNotificaciones() {
+            const listContainer = document.getElementById('notifications-list');
+            const btnMarkAll = document.getElementById('btn-mark-all-read-page');
+            
+            try {
+                const response = await fetch('/Pacientes/ObtenerNotificaciones');
+                const data = await response.json();
+                
+                if (!data.success) {
+                    listContainer.innerHTML = '<div class="text-center py-12 text-red-500">Error al cargar notificaciones</div>';
+                    return;
+                }
+                
+                let notificaciones = data.notificaciones;
+                
+                // Aplicar filtro
+                if (currentFilter === 'no-leidas') {
+                    notificaciones = notificaciones.filter(n => !n.leida);
+                } else if (currentFilter === 'leidas') {
+                    notificaciones = notificaciones.filter(n => n.leida);
+                }
+                
+                // Mostrar/ocultar botón de marcar todas
+                const hayNoLeidas = data.notificaciones.some(n => !n.leida);
+                if (hayNoLeidas) {
+                    btnMarkAll.classList.remove('hidden');
+                } else {
+                    btnMarkAll.classList.add('hidden');
+                }
+                
+                // Renderizar
+                if (notificaciones.length === 0) {
+                    listContainer.innerHTML = `
+                        <div class="text-center py-12">
+                            <span class="material-symbols-outlined text-6xl text-gray-300">notifications_off</span>
+                            <p class="text-gray-500 mt-4">No hay notificaciones ${currentFilter === 'no-leidas' ? 'sin leer' : currentFilter === 'leidas' ? 'leídas' : ''}</p>
+                        </div>
+                    `;
+                } else {
+                    let html = '';
+                    notificaciones.forEach(notif => {
+                        const leidaClass = notif.leida ? 'bg-white border-gray-200' : 'bg-blue-50 border-blue-200';
+                        html += `
+                            <div class="${leidaClass} border rounded-xl p-5 hover:shadow-md transition-shadow cursor-pointer" onclick="marcarComoLeida(${notif.id})">
+                                <div class="flex items-start gap-4">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                                            <span class="material-symbols-outlined text-primary text-2xl">notifications_active</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-start justify-between gap-4">
+                                            <div class="flex-1">
+                                                <h3 class="text-lg font-semibold text-gray-900">${notif.asunto}</h3>
+                                                <p class="text-gray-600 mt-1">${notif.mensaje}</p>
+                                                <p class="text-sm text-gray-400 mt-2">${notif.tiempoTranscurrido}</p>
+                                            </div>
+                                            ${!notif.leida ? '<div class="flex-shrink-0"><span class="w-3 h-3 bg-blue-500 rounded-full block"></span></div>' : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    listContainer.innerHTML = html;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                listContainer.innerHTML = '<div class="text-center py-12 text-red-500">Error al cargar notificaciones</div>';
+            }
+        }
+        
+        async function marcarComoLeida(notificacionId) {
+            try {
+                const response = await fetch('/Pacientes/MarcarNotificacionLeida', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(notificacionId)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    cargarTodasNotificaciones();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+        
+        async function marcarTodasLeidas() {
+            try {
+                const response = await fetch('/Pacientes/MarcarTodasLeidas', {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    cargarTodasNotificaciones();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+    </script>
+}

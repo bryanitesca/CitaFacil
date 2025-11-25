@@ -1,0 +1,102 @@
+﻿@model CitaFacil.Models.Usuario
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Detalles del Usuario";
+}
+
+<!-- Título de la Página -->
+<div class="mb-8">
+    <h1 class="text-4xl font-black tracking-tighter text-text-light dark:text-text-dark">
+        Detalles del Usuario
+    </h1>
+    <p class="text-lg text-zinc-500 dark:text-zinc-400">
+        Información de <span class="font-bold text-primary">@Model.usuario</span>.
+    </p>
+</div>
+
+<!-- Tarjeta de Detalles -->
+<div class="bg-white dark:bg-zinc-800 rounded-lg shadow-md overflow-hidden">
+
+    <!-- Sección de Cuenta -->
+    <div class="p-6 lg:p-8">
+        <h3 class="text-lg font-semibold text-text-light dark:text-text-dark border-b dark:border-zinc-700 pb-2 mb-6">Datos de la Cuenta</h3>
+        <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+            <div class="sm:col-span-1">
+                <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">Usuario</dt>
+                <dd class="mt-1 text-base text-text-light dark:text-text-dark">@Model.usuario</dd>
+            </div>
+            <div class="sm:col-span-1">
+                <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">Rol</dt>
+                <dd class="mt-1 text-base text-text-light dark:text-text-dark">@Model.rol</dd>
+            </div>
+            <div class="sm:col-span-1">
+                <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">Correo</dt>
+                <dd class="mt-1 text-base text-text-light dark:text-text-dark">@Model.correo</dd>
+            </div>
+            <div class="sm:col-span-1">
+                <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">Celular</dt>
+                <dd class="mt-1 text-base text-text-light dark:text-text-dark">@Model.celular</dd>
+            </div>
+        </dl>
+    </div>
+
+    <!-- Sección de Doctor (si aplica) -->
+    @if (Model.Doctor != null)
+    {
+        <div class="p-6 lg:p-8 border-t dark:border-zinc-700">
+            <h3 class="text-lg font-semibold text-text-light dark:text-text-dark border-b dark:border-zinc-700 pb-2 mb-6">Perfil de Doctor</h3>
+            <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <div class="sm:col-span-1">
+                    <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">Apellido(s)</dt>
+                    <dd class="mt-1 text-base text-text-light dark:text-text-dark">@Model.Doctor.apellido @Model.Doctor.segundo_apellido</dd>
+                </div>
+                <div class="sm:col-span-1">
+                    <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">Especialidad</dt>
+                    <dd class="mt-1 text-base text-text-light dark:text-text-dark">@Model.Doctor.Especialidad.nombre</dd>
+                </div>
+                <div class="sm:col-span-2">
+                    <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">Licencia (Cédula)</dt>
+                    <dd class="mt-1 text-base text-text-light dark:text-text-dark">@Model.Doctor.licencia</dd>
+                </div>
+            </dl>
+        </div>
+    }
+
+    <!-- Sección de Paciente (si aplica) -->
+    @if (Model.Paciente != null)
+    {
+        <div class="p-6 lg:p-8 border-t dark:border-zinc-700">
+            <h3 class="text-lg font-semibold text-text-light dark:text-text-dark border-b dark:border-zinc-700 pb-2 mb-6">Perfil de Paciente</h3>
+            <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <div class="sm:col-span-1">
+                    <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">Apellido(s)</dt>
+                    <dd class="mt-1 text-base text-text-light dark:text-text-dark">@Model.Paciente.apellido @Model.Paciente.segundo_apellido</dd>
+                </div>
+                <div class="sm:col-span-1">
+                    <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">Fecha de Nacimiento</dt>
+                    <dd class="mt-1 text-base text-text-light dark:text-text-dark">@Model.Paciente.fecha_nacimiento.ToShortDateString()</dd>
+                </div>
+                <div class="sm:col-span-1">
+                    <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">Género</dt>
+                    <dd class="mt-1 text-base text-text-light dark:text-text-dark">@Model.Paciente.genero</dd>
+                </div>
+                <div class="sm:col-span-1">
+                    <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">Dirección</dt>
+                    <dd class="mt-1 text-base text-text-light dark:text-text-dark">@(Model.Paciente.direccion ?? "No especificada")</dd>
+                </div>
+            </dl>
+        </div>
+    }
+
+    <!-- Botones de Acción -->
+    <div class="flex items-center justify-end gap-4 p-6 border-t dark:border-zinc-700">
+        <a asp-action="Index" class="px-5 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-700 text-text-light dark:text-text-dark font-semibold hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors duration-200">
+            Volver a la lista
+        </a>
+        <a asp-action="Edit" asp-route-id="@Model.id" class="flex items-center justify-center gap-2 px-5 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors duration-200">
+            <span class="material-symbols-outlined">edit</span>
+            Editar
+        </a>
+    </div>
+
+</div>

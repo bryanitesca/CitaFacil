@@ -1,0 +1,124 @@
+@model CitaFacil.ViewModels.DoctorPatientContactViewModel
+@using System.Linq
+
+@{
+    Layout = "_DoctorLayout";
+    ViewData["Title"] = "Contacto con el paciente";
+}
+
+<div class="space-y-10">
+    <div class="flex flex-wrap items-start justify-between gap-6">
+        <div class="flex items-center gap-4">
+            <div class="flex h-16 w-16 items-center justify-center rounded-full bg-primary/15 text-xl font-semibold uppercase text-primary">
+                @Model.AvatarIniciales
+            </div>
+            <div class="space-y-1">
+                <h1 class="text-3xl font-bold tracking-[-0.03em] text-slate-900 dark:text-white">Contacto con @Model.NombreCompleto</h1>
+                <p class="text-sm text-slate-500 dark:text-slate-400">ID paciente: @Model.PacienteId</p>
+            </div>
+        </div>
+        <a asp-action="Pacientes" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-300 dark:hover:border-primary dark:hover:text-primary">
+            <span class="material-symbols-outlined text-sm">arrow_back</span>
+            Volver a pacientes
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] is string mensaje)
+    {
+        <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-800/50 dark:bg-emerald-900/30 dark:text-emerald-200">
+            <span class="material-symbols-outlined me-2 align-middle">check_circle</span>@mensaje
+        </div>
+    }
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <section class="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/60 lg:col-span-1">
+            <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Información de contacto</h2>
+            <div class="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                <div class="flex items-center gap-3 rounded-lg bg-slate-100 px-3 py-2 dark:bg-slate-800/60">
+                    <span class="material-symbols-outlined text-base text-slate-400">mail</span>
+                    <span class="truncate">@Model.Correo</span>
+                </div>
+                <div class="flex items-center gap-3 rounded-lg bg-slate-100 px-3 py-2 dark:bg-slate-800/60">
+                    <span class="material-symbols-outlined text-base text-slate-400">call</span>
+                    <span class="truncate">@(string.IsNullOrWhiteSpace(Model.Telefono) ? "Sin celular" : Model.Telefono)</span>
+                </div>
+            </div>
+            <div class="text-xs text-slate-400 dark:text-slate-500">
+                La información de contacto proviene del perfil del paciente. Actualiza el expediente si necesitas realizar cambios.
+            </div>
+            <div class="mt-4 space-y-2">
+                <h3 class="text-xs font-semibold uppercase tracking-wide text-slate-500">Historial reciente</h3>
+                @if (!Model.Historial.Any())
+                {
+                    <p class="rounded-lg bg-slate-100 px-3 py-2 text-xs text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">Aún no se han registrado contactos previos.</p>
+                }
+                else
+                {
+                    <ul class="space-y-2 text-xs text-slate-500 dark:text-slate-300">
+                        @foreach (var registro in Model.Historial.Take(5))
+                        {
+                            <li class="rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800/40">
+                                <p class="font-semibold text-slate-700 dark:text-slate-200">@registro.Asunto</p>
+                                <p class="text-[10px] uppercase tracking-wide text-slate-400">@registro.Fecha.ToLocalTime().ToString("dd MMM yyyy - HH:mm", new System.Globalization.CultureInfo("es-MX"))</p>
+                                <p class="mt-1 text-[11px] text-slate-500 dark:text-slate-300">@registro.Mensaje</p>
+                                <div class="mt-2 flex gap-2 text-[10px] font-semibold uppercase">
+                                    @if (registro.ViaSistema)
+                                    {
+                                        <span class="rounded-full bg-primary/15 px-2 py-0.5 text-primary">Sistema</span>
+                                    }
+                                </div>
+                            </li>
+                        }
+                        @if (Model.Historial.Count > 5)
+                        {
+                            <li class="text-[11px] text-slate-400">@((Model.Historial.Count - 5) == 1 ? "1 contacto más" : $"{Model.Historial.Count - 5} contactos más")</li>
+                        }
+                    </ul>
+                }
+            </div>
+        </section>
+
+        <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/60 lg:col-span-2">
+            <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Enviar aviso</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Este aviso le llegará al paciente como notificación en su panel. Úsalo para recordatorios o información importante.</p>
+
+            <form asp-action="Contacto" asp-route-id="@Model.PacienteId" method="post" class="mt-4 space-y-4">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600 dark:border-rose-800/50 dark:bg-rose-900/40 dark:text-rose-300"></div>
+
+                <div>
+                    <label asp-for="Formulario.Asunto" class="text-xs font-semibold uppercase tracking-wide text-slate-500"></label>
+                    <input asp-for="Formulario.Asunto" class="mt-1 w-full rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-700 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200" placeholder="Ejemplo: Seguimiento de resultados" />
+                    <span asp-validation-for="Formulario.Asunto" class="text-xs text-rose-500"></span>
+                </div>
+
+                <div>
+                    <label asp-for="Formulario.Mensaje" class="text-xs font-semibold uppercase tracking-wide text-slate-500"></label>
+                    <textarea asp-for="Formulario.Mensaje" rows="4" class="mt-1 w-full rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-700 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200" placeholder="Escribe aquí el detalle del contacto o las instrucciones proporcionadas"></textarea>
+                    <span asp-validation-for="Formulario.Mensaje" class="text-xs text-rose-500"></span>
+                </div>
+
+                <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 text-sm text-blue-700 dark:text-blue-300">
+                    <span class="material-symbols-outlined text-base align-middle mr-2">info</span>
+                    <span>Este aviso se enviará al paciente como notificación en su panel y quedará registrado en el historial.</span>
+                </div>
+
+                <div class="flex justify-end gap-3">
+                    <a asp-action="Expediente" asp-route-id="@Model.PacienteId" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-300 dark:hover:border-primary dark:hover:text-primary">
+                        <span class="material-symbols-outlined text-sm">folder_open</span>
+                        Ver expediente
+                    </a>
+                    <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-dark">
+                        <span class="material-symbols-outlined text-sm">send</span>
+                        Enviar aviso
+                    </button>
+                </div>
+            </form>
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+

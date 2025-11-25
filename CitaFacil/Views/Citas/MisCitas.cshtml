@@ -1,0 +1,250 @@
+﻿@using System.Globalization
+@model CitaFacil.ViewModels.MyAppointmentsViewModel
+@{
+    Layout = "_PatientLayout";
+    ViewData["Title"] = "Mis citas";
+    var cultura = new CultureInfo("es-MX");
+
+    string ClaseEstado(string estado) => estado?.ToUpperInvariant() switch
+    {
+        "CONFIRMADA" => "bg-green-100 text-green-700",
+        "COMPLETADA" => "bg-gray-200 text-gray-700",
+        "CANCELADA" => "bg-red-100 text-red-700",
+        _ => "bg-primary/10 text-primary"
+    };
+}
+
+<form id="mis-citas-antiforgery" method="post" class="hidden">@Html.AntiForgeryToken()</form>
+
+<div class="space-y-8">
+    <div class="flex flex-wrap justify-between items-start gap-4">
+        <div class="space-y-2">
+            <h1 class="text-4xl font-black leading-tight tracking-[-0.033em] text-text-light dark:text-text-dark">Mis citas</h1>
+            <p class="text-zinc-500 dark:text-zinc-400">Consulta y gestiona las citas agendadas con tu equipo médico.</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-6">
+        <section class="space-y-6">
+            <div class="flex items-center gap-4 border-b border-zinc-100 dark:border-zinc-700 pb-4">
+                <button type="button" class="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold">Próximas citas (@Model.ProximasCitas.Count)</button>
+                <button type="button" class="px-4 py-2 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm text-zinc-600 dark:text-zinc-300">Citas pasadas (@Model.CitasPasadas.Count)</button>
+            </div>
+
+            @if (!Model.ProximasCitas.Any())
+            {
+                <div class="rounded-xl border border-dashed border-zinc-300 dark:border-zinc-600 p-6 text-center">
+                    <span class="material-symbols-outlined text-5xl text-zinc-300 dark:text-zinc-600">event_busy</span>
+                    <p class="mt-4 text-lg font-semibold text-text-light dark:text-text-dark">No tienes citas próximas</p>
+                    <p class="text-sm text-zinc-500 dark:text-zinc-400">Agenda una nueva cita para mantener tu historial al día.</p>
+                </div>
+            }
+            else
+            {
+                foreach (var cita in Model.ProximasCitas)
+                {
+                    var doctor = cita.Doctor;
+                    var nombreDoctor = doctor is null
+                        ? "Médico asignado"
+                        : string.Join(" ", new[] { "Dr.".Equals(doctor.Usuario?.nombre, StringComparison.OrdinalIgnoreCase) ? doctor.Usuario?.nombre : "Dr(a).", doctor.Usuario?.nombre, doctor.apellido }.Where(s => !string.IsNullOrWhiteSpace(s))).Trim();
+                    <article class="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-6 space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-4">
+                            <div>
+                                <p class="text-base font-semibold text-text-light dark:text-text-dark">@nombreDoctor</p>
+                                <p class="text-sm text-zinc-500 dark:text-zinc-400">Especialidad: @(doctor?.Especialidad?.nombre ?? "Por confirmar")</p>
+                            </div>
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold @ClaseEstado(cita.estado)">@TextoEstado(cita.estado)</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-zinc-600 dark:text-zinc-300">
+                            <div>
+                                <p class="font-semibold text-text-light dark:text-text-dark">Fecha</p>
+                                <p>@cita.fecha.ToString("dd 'de' MMMM 'de' yyyy", cultura)</p>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-text-light.dark:text-text-dark">Hora</p>
+                                <p>@DateTime.Today.Add(cita.hora).ToString("hh:mm tt", cultura)</p>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-text-light dark:text-text-dark">Modalidad</p>
+                                <p>@(cita.es_virtual ? "Consulta virtual" : "Consulta presencial" )</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-3">
+                            <a asp-controller="Citas" asp-action="Details" asp-route-id="@cita.id" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold">Ver detalles</a>
+                            <button type="button" onclick="reagendarCita(@cita.id)" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm text-zinc-600 dark:text-zinc-300">Reprogramar</button>
+                            <button type="button" onclick="cancelarCita(@cita.id)" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-red-600 hover:text-red-700">Cancelar</button>
+                        </div>
+                    </article>
+                }
+            }
+        </section>
+
+        <aside class="space-y-6">
+            <div class="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 p-6">
+                <h2 class="text-lg font-semibold text-text-light dark:text-text-dark mb-4">Resumen</h2>
+                <dl class="space-y-3 text-sm text-zinc-600 dark:text-zinc-300">
+                    <div class="flex justify-between">
+                        <dt>Próximas citas:</dt>
+                        <dd class="font-semibold text-text-light dark:text-text-dark">@Model.ProximasCitas.Count</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt>Citas pasadas:</dt>
+                        <dd class="font-semibold text-text-light dark:text-text-dark">@Model.CitasPasadas.Count</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <div class="bg-primary/10 dark:bg-primary/20 rounded-xl border border-primary/40 p-6 space-y-3">
+                <p class="text-sm font-semibold text-primary">Consejo</p>
+                <p class="text-sm text-primary/90">Llega 10 minutos antes de tu cita para completar tu registro y actualizar tu información médica.</p>
+            </div>
+        </aside>
+    </div>
+
+    <section class="space-y-4">
+        <div class="flex items-center justify-between">
+            <h2 class="text-lg font-semibold text-text-light dark:text-text-dark">Historial reciente</h2>
+            <a asp-action="Historial" class="text-sm text-primary hover:underline">Ver todo el historial</a>
+        </div>
+        @if (!Model.CitasPasadas.Any())
+        {
+            <p class="text-sm text-zinc-500 dark:text-zinc-400">Aún no tienes citas completadas.</p>
+        }
+        else
+        {
+            <div class="grid gap-4 lg:grid-cols-2">
+                @foreach (var cita in Model.CitasPasadas.Take(4))
+                {
+                    var doctor = cita.Doctor;
+                    <article class="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-5 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <p class="text-sm font-semibold text-text-light dark:text-text-dark">Dr(a). @(doctor?.Usuario?.nombre ?? "Médico")</p>
+                            <span class="text-xs text-zinc-500">@cita.fecha.ToString("dd/MM/yyyy", cultura)</span>
+                        </div>
+                        <p class="text-sm text-zinc-500 dark:text-zinc-400">Especialidad: @(doctor?.Especialidad?.nombre ?? "Por confirmar")</p>
+                        <p class="text-sm text-zinc-600 dark:text-zinc-300">Notas: @(string.IsNullOrWhiteSpace(cita.notas) ? "Sin notas" : cita.notas)</p>
+                    </article>
+                }
+            </div>
+        }
+    </section>
+</div>
+
+@section Scripts {
+    <script>
+        function getMisCitasToken() {
+            return document.querySelector('#mis-citas-antiforgery input[name="__RequestVerificationToken"]')?.value || '';
+        }
+
+        async function reagendarCita(citaId) {
+            const confirmado = await showAppConfirm({
+                title: 'Reprogramar cita',
+                text: '¿Quieres reprogramar esta cita?',
+                icon: 'question',
+                confirmButtonText: 'Sí, reprogramar'
+            });
+
+            if (!confirmado) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/Pacientes/ReagendarCita/${citaId}`, {
+                    method: 'POST',
+                    headers: {
+                        'RequestVerificationToken': getMisCitasToken()
+                    }
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    if (data.redirectUrl) {
+                        window.location.href = data.redirectUrl;
+                    } else {
+                        await showAppAlert({
+                            icon: 'success',
+                            title: 'Cita lista para reprogramar',
+                            text: 'Selecciona una nueva fecha y hora.'
+                        });
+                        window.location.reload();
+                    }
+                } else {
+                    await showAppAlert({
+                        icon: 'error',
+                        title: 'No se pudo reprogramar',
+                        text: data.message || 'Ocurrió un error al reprogramar la cita.'
+                    });
+                }
+            } catch (error) {
+                console.error(error);
+                await showAppAlert({
+                    icon: 'error',
+                    title: 'Error inesperado',
+                    text: 'No se pudo reprogramar la cita.'
+                });
+            }
+        }
+
+        async function cancelarCita(citaId) {
+            const motivo = await showAppPrompt({
+                title: 'Cancelar cita',
+                text: '¿Por qué razón cancelas la cita? (opcional)',
+                icon: 'warning',
+                inputLabel: 'Motivo de cancelación',
+                inputPlaceholder: 'Describe el motivo',
+                confirmButtonText: 'Cancelar cita'
+            });
+
+            if (motivo === null) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/Pacientes/CancelarCita/${citaId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': getMisCitasToken()
+                    },
+                    body: JSON.stringify({ Motivo: motivo })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    await showAppAlert({
+                        icon: 'success',
+                        title: 'Cita cancelada',
+                        text: 'Se notificó al consultorio sobre la cancelación.'
+                    });
+                    window.location.reload();
+                } else {
+                    await showAppAlert({
+                        icon: 'error',
+                        title: 'No se pudo cancelar',
+                        text: data.message || 'Ocurrió un error al cancelar la cita.'
+                    });
+                }
+            } catch (error) {
+                console.error(error);
+                await showAppAlert({
+                    icon: 'error',
+                    title: 'Error inesperado',
+                    text: 'No se pudo cancelar la cita.'
+                });
+            }
+        }
+    </script>
+}
+
+@functions {
+    private static string TextoEstado(string estado)
+    {
+        if (string.IsNullOrWhiteSpace(estado))
+        {
+            return "Sin estado";
+        }
+
+        var cultura = new CultureInfo("es-MX");
+        return cultura.TextInfo.ToTitleCase(estado.ToLower(cultura));
+    }
+}

@@ -1,0 +1,2 @@
+C:\Users\bryan\Downloads\CitaFacil\CitaFacil\wwwroot\admin-layout.js
+C:\Users\bryan\Downloads\CitaFacil\CitaFacil\wwwroot\js\fullcalendar-locale-es.js

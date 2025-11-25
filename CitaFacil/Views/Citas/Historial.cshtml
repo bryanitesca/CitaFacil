@@ -1,0 +1,74 @@
+﻿@using System.Globalization
+@model CitaFacil.ViewModels.MyAppointmentsViewModel
+@{
+    Layout = "_PatientLayout";
+    ViewData["Title"] = "Historial de citas";
+    var cultura = new CultureInfo("es-MX");
+}
+
+<div class="space-y-8">
+    <div class="space-y-2">
+        <h1 class="text-4xl font-black tracking-[-0.033em] text-text-light dark:text-text-dark">Historial de citas</h1>
+        <p class="text-zinc-500 dark:text-zinc-400">Consulta todas las citas completadas y accede a las notas registradas.</p>
+    </div>
+
+    <section class="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-700">
+        <form method="get" class="flex flex-wrap gap-3 items-center justify-between p-6 border-b border-zinc-100 dark:border-zinc-700 text-sm">
+            <div class="w-full lg:w-1/3 relative">
+                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">search</span>
+                <input type="text" name="busqueda" value="@ViewBag.Busqueda" placeholder="Buscar por doctor, especialidad o notas" class="w-full pl-12 pr-4 py-3 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 focus:ring-primary focus:border-primary" />
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+                <input type="date" name="fechaInicio" value="@(ViewBag.FechaInicio != null ? ((DateTime)ViewBag.FechaInicio).ToString("yyyy-MM-dd") : "")" class="px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-300" placeholder="Fecha desde" />
+                <input type="date" name="fechaFin" value="@(ViewBag.FechaFin != null ? ((DateTime)ViewBag.FechaFin).ToString("yyyy-MM-dd") : "")" class="px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-300" placeholder="Fecha hasta" />
+                <select name="especialidad" class="px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-300">
+                    <option value="">Todas las especialidades</option>
+                    @foreach (var esp in (List<CitaFacil.Models.Especialidad>)ViewBag.Especialidades)
+                    {
+                        <option value="@esp.nombre" selected="@(ViewBag.EspecialidadFiltro == esp.nombre)">@esp.nombre</option>
+                    }
+                </select>
+                <button type="submit" class="px-4 py-2 rounded-lg bg-primary text-white font-medium hover:bg-primary-dark">Filtrar</button>
+                <a href="@Url.Action("Historial")" class="px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50">Limpiar</a>
+            </div>
+        </form>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-zinc-100 dark:divide-zinc-700 text-sm">
+                <thead class="bg-zinc-50 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-200 uppercase">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left font-semibold">Fecha</th>
+                        <th scope="col" class="px-6 py-3 text-left font-semibold">Doctor</th>
+                        <th scope="col" class="px-6 py-3 text-left font-semibold">Especialidad</th>
+                        <th scope="col" class="px-6 py-3 text-left font-semibold">Notas</th>
+                        <th scope="col" class="px-6 py-3 text-right font-semibold">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-100 dark:divide-zinc-700">
+                    @if (!Model.CitasPasadas.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="px-6 py-8 text-center text-zinc-500 dark:text-zinc-400">Aún no tienes citas en tu historial.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var cita in Model.CitasPasadas)
+                        {
+                            var doctor = cita.Doctor;
+                            <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/40 transition-colors">
+                                <td class="px-6 py-4 whitespace-nowrap text-zinc-600 dark:text-zinc-300">@cita.fecha.ToString("dd 'de' MMMM 'de' yyyy", cultura)</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-text-light dark:text-text-dark">Dr(a). @(doctor?.Usuario?.nombre ?? "Médico") @doctor?.apellido</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-zinc-600 dark:text-zinc-300">@(doctor?.Especialidad?.nombre ?? "Por confirmar")</td>
+                                <td class="px-6 py-4 text-zinc-600 dark:text-zinc-300">@(string.IsNullOrWhiteSpace(cita.notas) ? "Sin notas" : cita.notas)</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right">
+                                    <a asp-controller="Citas" asp-action="Details" asp-route-id="@cita.id" class="text-primary hover:underline">Ver detalles</a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>

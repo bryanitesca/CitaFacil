@@ -1,0 +1,355 @@
+@{
+    Layout = "_PatientLayout";
+    ViewData["Title"] = "Mi Calendario de Citas";
+}
+
+<!-- Main Content -->
+<main class="flex-1 p-8">
+    <div class="flex flex-wrap justify-between gap-3 items-center mb-8">
+        <div class="flex flex-col gap-1">
+            <p class="text-slate-800 dark:text-slate-200 text-4xl font-black leading-tight tracking-[-0.033em]">Mi Calendario</p>
+            <p class="text-slate-500 dark:text-slate-400 text-base font-normal leading-normal">Visualiza y gestiona tus citas médicas.</p>
+        </div>
+        <div class="flex items-center gap-4">
+            <!-- SegmentedButtons -->
+            <div class="flex h-10 w-64 items-center justify-center rounded-lg bg-gray-200/50 p-1 dark:bg-white/10">
+                <label class="flex h-full flex-1 cursor-pointer items-center justify-center overflow-hidden rounded-[0.375rem] px-2 text-sm font-medium leading-normal text-[#616f89] has-[:checked]:bg-white has-[:checked]:text-[#111318] has-[:checked]:shadow-sm dark:text-gray-400 dark:has-[:checked]:bg-background-dark dark:has-[:checked]:text-white">
+                    <span class="truncate">Día</span>
+                    <input class="invisible w-0" name="calendarView" type="radio" value="timeGridDay"/>
+                </label>
+                <label class="flex h-full flex-1 cursor-pointer items-center justify-center overflow-hidden rounded-[0.375rem] px-2 text-sm font-medium leading-normal text-[#616f89] has-[:checked]:bg-white has-[:checked]:text-[#111318] has-[:checked]:shadow-sm dark:text-gray-400 dark:has-[:checked]:bg-background-dark dark:has-[:checked]:text-white">
+                    <span class="truncate">Semana</span>
+                    <input checked="" class="invisible w-0" name="calendarView" type="radio" value="timeGridWeek"/>
+                </label>
+                <label class="flex h-full flex-1 cursor-pointer items-center justify-center overflow-hidden rounded-[0.375rem] px-2 text-sm font-medium leading-normal text-[#616f89] has-[:checked]:bg-white has-[:checked]:text-[#111318] has-[:checked]:shadow-sm dark:text-gray-400 dark:has-[:checked]:bg-background-dark dark:has-[:checked]:text-white">
+                    <span class="truncate">Mes</span>
+                    <input class="invisible w-0" name="calendarView" type="radio" value="dayGridMonth"/>
+                </label>
+            </div>
+            <button id="btn-nueva-cita" class="flex h-10 min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-primary px-4 text-sm font-bold leading-normal tracking-[0.015em] text-white">
+                <span class="material-symbols-outlined fill mr-2 text-lg">add</span>
+                <span class="truncate">Nueva Cita</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Toolbar & Calendar Grid -->
+    <div class="flex flex-1 flex-col">
+        <!-- ToolBar -->
+        <div class="flex items-center justify-between gap-2 mb-4">
+            <div class="flex items-center gap-2">
+                <button id="calendar-prev" class="flex h-10 w-10 items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-white/10">
+                    <span class="material-symbols-outlined text-[#111318] dark:text-white">chevron_left</span>
+                </button>
+                <button id="calendar-next" class="flex h-10 w-10 items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-white/10">
+                    <span class="material-symbols-outlined text-[#111318] dark:text-white">chevron_right</span>
+                </button>
+                <p id="calendar-title" class="text-xl font-bold text-[#111318] dark:text-white">Calendario</p>
+            </div>
+            <button id="calendar-today" class="flex h-10 min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-gray-300 bg-white px-4 text-sm font-bold leading-normal tracking-[0.015em] text-[#111318] dark:border-gray-700 dark:bg-background-dark dark:text-white">
+                <span class="truncate">Hoy</span>
+            </button>
+        </div>
+
+        <!-- Calendar Container -->
+        <div class="bg-white dark:bg-background-dark rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+            <div id="calendar"></div>
+        </div>
+
+        <!-- Leyenda de colores -->
+        <div class="flex gap-6 p-4 mt-4">
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded" style="background-color: #f59e0b;"></div>
+                <span class="text-sm text-slate-600 dark:text-slate-400">Pendiente</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded" style="background-color: #10b981;"></div>
+                <span class="text-sm text-slate-600 dark:text-slate-400">Confirmada</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded" style="background-color: #6b7280;"></div>
+                <span class="text-sm text-slate-600 dark:text-slate-400">Completada</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded" style="background-color: #ef4444;"></div>
+                <span class="text-sm text-slate-600 dark:text-slate-400">Cancelada</span>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Modal de Detalles de Cita para Paciente -->
+<div id="modal-cita-details" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 hidden z-50">
+    <div class="bg-white dark:bg-background-dark rounded-xl w-full max-w-md p-6 relative">
+        <button id="btn-close-details" class="absolute top-4 right-4 p-1 rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+        
+        <h2 class="text-xl font-bold text-slate-800 dark:text-slate-200 mb-4">Detalles de mi Cita</h2>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Doctor:</label>
+                <p id="cita-doctor" class="text-slate-800 dark:text-slate-200"></p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Especialidad:</label>
+                <p id="cita-especialidad" class="text-slate-800 dark:text-slate-200"></p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Motivo:</label>
+                <p id="cita-motivo" class="text-slate-800 dark:text-slate-200"></p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Ubicación:</label>
+                <p id="cita-ubicacion" class="text-slate-800 dark:text-slate-200"></p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Estado:</label>
+                <span id="cita-estado" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"></span>
+            </div>
+            <div id="cita-notas-container" class="hidden">
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Notas:</label>
+                <p id="cita-notas" class="text-slate-800 dark:text-slate-200"></p>
+            </div>
+        </div>
+        
+        <div class="flex justify-end gap-2 mt-6">
+            <button id="btn-reprogramar" class="px-4 py-2 rounded-lg bg-primary text-white text-sm font-bold hover:bg-primary/90">
+                Reprogramar
+            </button>
+            <button id="btn-cancelar-cita" class="px-4 py-2 rounded-lg bg-red-500 text-white text-sm font-bold hover:bg-red-600">
+                Cancelar Cita
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Cancelar Cita -->
+<div id="modal-cancelar-cita" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 hidden z-50">
+    <div class="bg-white dark:bg-background-dark rounded-xl w-full max-w-sm p-6">
+        <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4">Cancelar Cita</h3>
+        <p class="text-slate-600 dark:text-slate-400 text-sm mb-4">¿Estás seguro de que quieres cancelar esta cita? Esta acción no se puede deshacer.</p>
+        
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Motivo de cancelación (opcional):</label>
+            <textarea id="motivo-cancelacion" class="form-textarea w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-slate-800 dark:text-slate-200 focus:border-primary focus:ring-primary" rows="3" placeholder="Explica brevemente por qué cancelas la cita..."></textarea>
+        </div>
+        
+        <div class="flex justify-center gap-2 w-full">
+            <button id="btn-cancelar-modal" class="flex-1 px-4 py-2 rounded-lg text-sm font-bold text-slate-700 dark:text-slate-300 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500">Volver</button>
+            <button id="btn-confirmar-cancelacion" class="flex-1 px-4 py-2 rounded-lg text-sm font-bold text-white bg-red-500 hover:bg-red-600">Cancelar Cita</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/locales/es.global.min.js"></script>
+    <script>
+        let calendar;
+        let currentCitaId = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                locale: 'es',
+                initialView: 'timeGridWeek',
+                headerToolbar: false,
+                height: 600,
+                slotMinTime: '08:00:00',
+                slotMaxTime: '18:00:00',
+                slotDuration: '01:00:00',
+                allDaySlot: false,
+                events: '@Url.Action("GetCitasJson", "Pacientes")',
+                eventClick: function(info) {
+                    showCitaDetails(info.event);
+                },
+                dateClick: function(info) {
+                    // Redirigir al flujo de agendamiento
+                    window.location.href = '@Url.Action("AgendarPaso1", "Citas")' + '?fecha=' + info.dateStr;
+                },
+                eventDidMount: function(info) {
+                    info.el.style.border = 'none';
+                    info.el.style.borderRadius = '8px';
+                    info.el.style.cursor = 'pointer';
+                }
+            });
+
+            calendar.render();
+            updateCalendarTitle();
+
+            // Navigation controls
+            document.getElementById('calendar-prev').addEventListener('click', function() {
+                calendar.prev();
+                updateCalendarTitle();
+            });
+
+            document.getElementById('calendar-next').addEventListener('click', function() {
+                calendar.next();
+                updateCalendarTitle();
+            });
+
+            document.getElementById('calendar-today').addEventListener('click', function() {
+                calendar.today();
+                updateCalendarTitle();
+            });
+
+            // View switcher
+            document.querySelectorAll('input[name="calendarView"]').forEach(function(radio) {
+                radio.addEventListener('change', function() {
+                    if (this.checked) {
+                        calendar.changeView(this.value);
+                        updateCalendarTitle();
+                    }
+                });
+            });
+
+            // Nueva cita button
+            document.getElementById('btn-nueva-cita').addEventListener('click', function() {
+                window.location.href = '@Url.Action("AgendarPaso1", "Citas")';
+            });
+
+            // Modal controls
+            document.getElementById('btn-close-details').addEventListener('click', hideModal);
+            document.getElementById('btn-reprogramar').addEventListener('click', reprogramarCita);
+            document.getElementById('btn-cancelar-cita').addEventListener('click', showCancelarModal);
+            document.getElementById('btn-cancelar-modal').addEventListener('click', hideCancelarModal);
+            document.getElementById('btn-confirmar-cancelacion').addEventListener('click', confirmarCancelacion);
+        });
+
+        function updateCalendarTitle() {
+            var title = calendar.view.title;
+            document.getElementById('calendar-title').textContent = title;
+        }
+
+        function showCitaDetails(event) {
+            currentCitaId = event.id;
+            
+            document.getElementById('cita-doctor').textContent = event.extendedProps.doctorNombre;
+            document.getElementById('cita-especialidad').textContent = event.extendedProps.especialidad;
+            document.getElementById('cita-motivo').textContent = event.extendedProps.motivo || 'Sin motivo especificado';
+            
+            const ubicacionText = event.extendedProps.esVirtual ? 'Consulta Virtual' : (event.extendedProps.ubicacion || 'Consultorio');
+            document.getElementById('cita-ubicacion').textContent = ubicacionText;
+            
+            const estadoBadge = document.getElementById('cita-estado');
+            estadoBadge.textContent = getEstadoText(event.extendedProps.estado);
+            estadoBadge.className = 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ' + getEstadoClass(event.extendedProps.estado);
+            
+            // Mostrar notas si existen
+            if (event.extendedProps.notas) {
+                document.getElementById('cita-notas').textContent = event.extendedProps.notas;
+                document.getElementById('cita-notas-container').classList.remove('hidden');
+            } else {
+                document.getElementById('cita-notas-container').classList.add('hidden');
+            }
+            
+            // Habilitar/deshabilitar botones según el estado
+            const estado = event.extendedProps.estado;
+            const btnReprogramar = document.getElementById('btn-reprogramar');
+            const btnCancelar = document.getElementById('btn-cancelar-cita');
+            
+            if (estado === 'CANCELADA' || estado === 'COMPLETADA') {
+                btnReprogramar.disabled = true;
+                btnCancelar.disabled = true;
+                btnReprogramar.classList.add('opacity-50', 'cursor-not-allowed');
+                btnCancelar.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                btnReprogramar.disabled = false;
+                btnCancelar.disabled = false;
+                btnReprogramar.classList.remove('opacity-50', 'cursor-not-allowed');
+                btnCancelar.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            
+            document.getElementById('modal-cita-details').classList.remove('hidden');
+        }
+
+        function hideModal() {
+            document.getElementById('modal-cita-details').classList.add('hidden');
+            currentCitaId = null;
+        }
+
+        function showCancelarModal() {
+            document.getElementById('modal-cancelar-cita').classList.remove('hidden');
+        }
+
+        function hideCancelarModal() {
+            document.getElementById('modal-cancelar-cita').classList.add('hidden');
+            document.getElementById('motivo-cancelacion').value = '';
+        }
+
+        function reprogramarCita() {
+            if (!currentCitaId) return;
+            // Redirigir al flujo de reagendamiento
+            window.location.href = '@Url.Action("Edit", "Citas")' + '/' + currentCitaId;
+        }
+
+        function confirmarCancelacion() {
+            if (!currentCitaId) return;
+            
+            const motivo = document.getElementById('motivo-cancelacion').value;
+            
+            fetch(`/Pacientes/CancelarCita/${currentCitaId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({ Motivo: motivo })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Cita cancelada correctamente', 'success');
+                    calendar.refetchEvents();
+                    hideModal();
+                    hideCancelarModal();
+                } else {
+                    showNotification(data.message || 'Error al cancelar la cita', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Error al cancelar la cita', 'error');
+            });
+        }
+
+        function getEstadoText(estado) {
+            const textos = {
+                'PENDIENTE': 'Pendiente',
+                'CONFIRMADA': 'Confirmada',
+                'COMPLETADA': 'Completada',
+                'CANCELADA': 'Cancelada'
+            };
+            return textos[estado] || estado;
+        }
+
+        function getEstadoClass(estado) {
+            const clases = {
+                'PENDIENTE': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
+                'CONFIRMADA': 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+                'COMPLETADA': 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400',
+                'CANCELADA': 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+            };
+            return clases[estado] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm ${
+                type === 'success' ? 'bg-green-500 text-white' :
+                type === 'error' ? 'bg-red-500 text-white' :
+                'bg-blue-500 text-white'
+            }`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+    </script>
+}

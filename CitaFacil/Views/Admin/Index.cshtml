@@ -1,0 +1,150 @@
+@model CitaFacil.ViewModels.AdminDashboardViewModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Dashboard del Administrador";
+
+    static string FormatearVariacion(double porcentaje) => porcentaje switch
+    {
+        double p when double.IsNaN(p) || double.IsInfinity(p) => "--",
+        double p when Math.Abs(p) < 0.01 => "0%",
+        double p when p > 0 => $"+{p:0.#}%",
+        double p => $"{p:0.#}%"
+    };
+
+    static string ConstruirBadgeEstado(bool activo) => activo ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
+
+    string TiempoRelativo(DateTime fecha)
+    {
+        var diferencia = DateTime.UtcNow - fecha.ToUniversalTime();
+        if (diferencia.TotalMinutes < 1) return "Hace instantes";
+        if (diferencia.TotalHours < 1) return $"Hace {Math.Floor(diferencia.TotalMinutes)} min";
+        if (diferencia.TotalDays < 1) return $"Hace {Math.Floor(diferencia.TotalHours)} h";
+        if (diferencia.TotalDays < 7) return $"Hace {Math.Floor(diferencia.TotalDays)} d";
+        return fecha.ToLocalTime().ToString("dd MMM yyyy");
+    }
+
+    var variacionCitas = Model.CitasSemanaAnterior == 0
+        ? (Model.CitasSemana > 0 ? 100d : 0d)
+        : ((Model.CitasSemana - (double)Model.CitasSemanaAnterior) / Model.CitasSemanaAnterior) * 100d;
+}
+
+<!-- Main Content -->
+<main class="flex-1 p-8">
+    <div class="flex flex-wrap justify-between gap-3 items-center mb-8">
+        <div class="flex flex-col gap-1">
+            <p class="text-gray-900 dark:text-white text-4xl font-black leading-tight tracking-[-0.033em]">Panel de Administración</p>
+            <p class="text-gray-500 dark:text-gray-400 text-base font-normal leading-normal">Resumen general del sistema y gestión de usuarios.</p>
+        </div>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+        <div class="flex flex-col gap-2 rounded-lg p-6 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+            <p class="text-gray-700 dark:text-gray-300 text-base font-medium leading-normal">Total de Usuarios</p>
+            <p class="text-gray-900 dark:text-white tracking-light text-2xl font-bold leading-tight">@Model.TotalUsuarios</p>
+            <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">@Model.TotalPacientes pacientes + @Model.TotalDoctores doctores</p>
+        </div>
+        <div class="flex flex-col gap-2 rounded-lg p-6 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+            <p class="text-gray-700 dark:text-gray-300 text-base font-medium leading-normal">Citas de Hoy</p>
+            <p class="text-gray-900 dark:text-white tracking-light text-2xl font-bold leading-tight">@Model.CitasHoy</p>
+            <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">@{
+                var citasPendientesHoy = Model.ActividadesRecientes.Count(a => a.Titulo.Contains("cita") && a.FechaEvento.Date == DateTime.Today);
+            }@citasPendientesHoy pendientes</p>
+        </div>
+        <div class="flex flex-col gap-2 rounded-lg p-6 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+            <p class="text-gray-700 dark:text-gray-300 text-base font-medium leading-normal">Nuevos Registros (7 días)</p>
+            <p class="text-gray-900 dark:text-white tracking-light text-2xl font-bold leading-tight">@Model.NuevosUsuariosSemana</p>
+            <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">Esta semana</p>
+        </div>
+        <div class="flex flex-col gap-2 rounded-lg p-6 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+            <p class="text-gray-700 dark:text-gray-300 text-base font-medium leading-normal">Doctores Activos</p>
+            <p class="text-gray-900 dark:text-white tracking-light text-2xl font-bold leading-tight">@Model.TotalDoctores</p>
+            <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">De @Model.TotalUsuarios usuarios totales</p>
+        </div>
+    </div>
+
+    <!-- Charts and Activity -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div class="lg:col-span-2 flex flex-col gap-2 rounded-lg border border-gray-200 dark:border-gray-800 p-6 bg-white dark:bg-gray-900">
+            <p class="text-gray-900 dark:text-white text-base font-medium leading-normal">Volumen de Citas</p>
+            <p class="text-gray-900 dark:text-white tracking-light text-[32px] font-bold leading-tight truncate">@Model.CitasSemana</p>
+            <div class="flex gap-1">
+                <p class="text-gray-500 dark:text-gray-400 text-base font-normal leading-normal">Últimos 7 días</p>
+            </div>
+            <div class="grid min-h-[220px] grid-flow-col gap-6 grid-rows-[1fr_auto] items-end justify-items-center px-3 mt-4">
+                @if (Model.VolumenCitasSemanal?.Any() == true)
+                {
+                    @foreach (var barra in Model.VolumenCitasSemanal)
+                    {
+                        var altura = barra.Valor > 0 ? Math.Clamp(barra.Valor * 15, 15, 90) : 5;
+                        <div class="bg-primary/60 w-full rounded-t-sm" style="height: @altura%;"></div>
+                        <p class="text-gray-500 dark:text-gray-400 text-[13px] font-bold leading-normal tracking-[0.015em]">@barra.Etiqueta</p>
+                    }
+                }
+                else
+                {
+                    @for (int i = 0; i < 7; i++)
+                    {
+                        var fecha = DateTime.Today.AddDays(-6 + i);
+                        var altura = (i % 3 + 1) * 20; // Datos de ejemplo
+                        <div class="bg-primary/40 w-full rounded-t-sm" style="height: @altura%;"></div>
+                        <p class="text-gray-500 dark:text-gray-400 text-[13px] font-bold leading-normal tracking-[0.015em]">@fecha.ToString("dd/MM")</p>
+                    }
+                }
+            </div>
+        </div>
+        
+        <div class="lg:col-span-1 bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-800">
+            <h2 class="text-gray-900 dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">Actividad Reciente</h2>
+            <div class="flex flex-col gap-4">
+                @if (Model.ActividadesRecientes.Count == 0)
+                {
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-full">
+                            <span class="material-symbols-outlined text-blue-500">edit_note</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <p class="text-sm font-medium text-gray-800 dark:text-gray-200">Sistema inicializado</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Hace unos minutos</p>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var actividad in Model.ActividadesRecientes.Take(5))
+                    {
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-full">
+                                <span class="material-symbols-outlined text-blue-500">@actividad.Icono</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <p class="text-sm font-medium text-gray-800 dark:text-gray-200">@actividad.Titulo</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">@TiempoRelativo(actividad.FechaEvento)</p>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+    
+    <!-- Resumen de actividades recientes -->
+    <div class="mt-8 bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-800">
+        <h2 class="text-gray-900 dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">Resumen del Sistema</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">@Model.TotalUsuarios</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Usuarios en el sistema</p>
+            </div>
+            <div class="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <p class="text-2xl font-bold text-green-600 dark:text-green-400">@Model.CitasSemana</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Citas esta semana</p>
+            </div>
+            <div class="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                <p class="text-2xl font-bold text-purple-600 dark:text-purple-400">@Model.TotalDoctores</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Doctores activos</p>
+            </div>
+        </div>
+    </div>
+</main>
+

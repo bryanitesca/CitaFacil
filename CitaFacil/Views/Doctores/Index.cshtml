@@ -1,0 +1,115 @@
+﻿@model CitaFacil.ViewModels.DoctorDashboardViewModel
+@{
+    Layout = "_DoctorLayout";
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="flex flex-col lg:flex-row h-full gap-6">
+
+    <!-- Columna Izquierda: Agenda del Día -->
+    <div class="flex-1 lg:flex-grow-2 xl:flex-grow-3">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-text-light dark:text-text-dark">
+                Tus Citas de Hoy, @DateTime.Today.ToString("d 'de' MMMM")
+            </h1>
+            <div class="flex items-center gap-2">
+                <button class="p-2 rounded-lg bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300">
+                    <span class="material-symbols-outlined">chevron_left</span>
+                </button>
+                <button class="p-2 rounded-lg bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300">
+                    <span class="material-symbols-outlined">chevron_right</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Lista de Citas -->
+        <div class="space-y-4">
+            @if (Model.CitasDeHoy.Any())
+            {
+                @foreach (var cita in Model.CitasDeHoy)
+                {
+                    // Resalta la cita si es la seleccionada
+                    bool isSelected = cita.id == Model.CitaSeleccionada?.id;
+                    <div class="grid grid-cols-[80px_1fr] gap-x-4 items-start p-4 rounded-xl border-2 @(isSelected ? "border-primary bg-primary/10 dark:bg-primary/20" : "bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700")">
+                        <div class="text-right">
+                            <p class="text-base font-bold @(isSelected ? "text-primary dark:text-white" : "text-text-light dark:text-text-dark")">@cita.hora.ToString(@"hh\:mm")</p>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-base font-medium text-text-light dark:text-text-dark">Cita con @cita.Paciente.Usuario.usuario</p>
+                            <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-2">@(!string.IsNullOrWhiteSpace(cita.motivo) ? cita.motivo : "Sin motivo registrado")</p>
+
+                            <!-- Badge de Estado -->
+                            @if (cita.estado == "PENDIENTE")
+                            {
+                                <span class="inline-flex items-center px-2 py-1 text-xs font-medium text-yellow-800 bg-yellow-100 rounded-full dark:bg-yellow-900 dark:text-yellow-300">Pendiente</span>
+                            }
+                            else if (cita.estado == "CONFIRMADA")
+                            {
+                                <span class="inline-flex items-center px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full dark:bg-green-900 dark:text-green-300">Confirmada</span>
+                            }
+                            else
+                            {
+                                <span class="inline-flex items-center px-2 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-full dark:bg-red-900 dark:text-red-300">@cita.estado</span>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="p-6 text-center bg-white dark:bg-zinc-800 rounded-lg shadow-sm">
+                    <span class="material-symbols-outlined text-6xl text-zinc-300 dark:text-zinc-600">event_busy</span>
+                    <p class="mt-4 text-lg font-semibold">No tienes citas programadas para hoy.</p>
+                    <p class="text-zinc-500">Disfruta tu día libre o revisa tu calendario.</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Columna Derecha: Detalles del Paciente -->
+    <div class="w-full lg:w-96 xl:w-[420px] bg-white dark:bg-zinc-800 border-l border-zinc-200 dark:border-zinc-700 flex-shrink-0 p-6 rounded-lg shadow-lg">
+        @if (Model.PacienteSeleccionado != null)
+        {
+            var paciente = Model.PacienteSeleccionado;
+            var cita = Model.CitaSeleccionada;
+
+            <!-- Perfil del Paciente -->
+            <div class="flex flex-col items-center text-center pb-6 border-b border-zinc-200 dark:border-zinc-700">
+                <span class="material-symbols-outlined text-8xl p-4 bg-secondary dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400 rounded-full">person</span>
+                <p class="text-xl font-bold mt-4 text-text-light dark:text-text-dark">@paciente.Usuario.usuario @paciente.apellido</p>
+                <p class="text-sm text-zinc-500 dark:text-zinc-400">@paciente.genero | @paciente.Usuario?.correo</p>
+                <p class="text-sm text-zinc-500 dark:text-zinc-400">Fecha Nac: @paciente.fecha_nacimiento.ToString("dd/MM/yyyy")</p>
+
+                <div class="flex w-full gap-3 mt-4">
+                    <button class="flex-1 px-4 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 text-text-light dark:text-text-dark text-sm font-semibold">Ver Historial</button>
+                    <button class="flex-1 px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold">Iniciar Consulta</button>
+                </div>
+            </div>
+
+            <!-- Detalles de la Cita -->
+            <div class="py-4 space-y-4 text-sm">
+                <div>
+                    <h4 class="font-semibold text-text-light dark:text-text-dark">Razón de la Visita</h4>
+                    @{ var motivo = cita?.motivo; }
+                    <p class="text-zinc-600 dark:text-zinc-400">@(string.IsNullOrWhiteSpace(motivo) ? "Sin motivo registrado" : motivo)</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-text-light dark:text-text-dark">Dirección del Paciente</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400">@paciente.direccion</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-text-light dark:text-text-dark">Celular</h4>
+                    <p class="text-zinc-600 dark:text-zinc-400">@paciente.Usuario?.celular</p>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="flex flex-col items-center justify-center h-full text-center">
+                <span class="material-symbols-outlined text-6xl text-zinc-300 dark:text-zinc-600">person_search</span>
+                <p class="mt-4 text-lg font-semibold">No hay paciente seleccionado</p>
+                <p class="text-zinc-500">Haz clic en una cita de la lista para ver los detalles.</p>
+            </div>
+        }
+    </div>
+</div>

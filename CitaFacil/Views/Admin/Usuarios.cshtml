@@ -1,0 +1,174 @@
+﻿@using System.Globalization
+@model CitaFacil.ViewModels.AdminUserManagementViewModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Gestión de usuarios";
+    var cultura = new CultureInfo("es-MX");
+
+    string ClaseRol(string rol) => rol switch
+    {
+        "Administrador" => "bg-purple-100 text-purple-800",
+        "Doctor" => "bg-blue-100 text-blue-800",
+        _ => "bg-zinc-100 text-zinc-800"
+    };
+
+    string ClaseEstado(bool activo) => activo ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700";
+}
+
+<div class="space-y-8">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="space-y-2">
+            <p class="text-4xl font-black tracking-tight text-text-light dark:text-text-dark">Gestión de usuarios</p>
+            <p class="text-zinc-500 dark:text-zinc-400">Administra cuentas, roles y accesos desde un solo lugar.</p>
+        </div>
+        <a asp-controller="Usuarios" asp-action="Create" class="flex items-center gap-2 px-5 py-3 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors duration-200">
+            <span class="material-symbols-outlined">add</span>
+            Nuevo usuario
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="p-4 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800">
+            <p class="text-sm text-zinc-500 dark:text-zinc-400">Usuarios totales</p>
+            <p class="text-2xl font-bold text-text-light dark:text-text-dark">@Model.TotalUsuarios</p>
+        </div>
+        <div class="p-4 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800">
+            <p class="text-sm text-zinc-500 dark:text-zinc-400">Doctores registrados</p>
+            <p class="text-2xl font-bold text-text-light dark:text-text-dark">@Model.TotalDoctores</p>
+        </div>
+        <div class="p-4 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800">
+            <p class="text-sm text-zinc-500 dark:text-zinc-400">Pacientes registrados</p>
+            <p class="text-2xl font-bold text-text-light dark:text-text-dark">@Model.TotalPacientes</p>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700">
+        <div class="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between p-6 border-b border-zinc-100 dark:border-zinc-700">
+            <div class="w-full lg:w-1/2 relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">search</span>
+                <input type="text" id="search-input" placeholder="Buscar por nombre, usuario o correo" class="w-full pl-11 pr-4 py-3 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 focus:ring-primary focus:border-primary text-sm" />
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <select id="filter-rol" class="px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-sm text-zinc-600 dark:text-zinc-300">
+                    <span class="material-symbols-outlined text-base">tune</span>
+                    <option value="">Todos los roles</option>
+                    <option value="Administrador">Administrador</option>
+                    <option value="Doctor">Doctor</option>
+                    <option value="Paciente">Paciente</option>
+                </select>
+                <select id="filter-estado" class="px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-sm text-zinc-600 dark:text-zinc-300">
+                    <option value="">Todos los estados</option>
+                    <option value="true">Activo</option>
+                    <option value="false">Inactivo</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-zinc-100 dark:divide-zinc-700 text-sm">
+                <thead class="bg-zinc-50 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-200 uppercase">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left font-semibold">Nombre</th>
+                        <th scope="col" class="px-6 py-3 text-left font-semibold">Correo</th>
+                        <th scope="col" class="px-6 py-3 text-left font-semibold">Rol</th>
+                        <th scope="col" class="px-6 py-3 text-left font-semibold">Registro</th>
+                        <th scope="col" class="px-6 py-3 text-left font-semibold">Estado</th>
+                        <th scope="col" class="px-6 py-3 text-right font-semibold">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-100 dark:divide-zinc-700">
+                    @if (Model.Usuarios.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="6" class="px-6 py-6 text-center text-zinc-500 dark:text-zinc-300">No se encontraron usuarios.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var usuario in Model.Usuarios)
+                        {
+                            <tr class="usuario-row hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-colors" 
+                                data-nombre="@usuario.NombreCompleto?.ToLower()" 
+                                data-correo="@usuario.Correo.ToLower()" 
+                                data-rol="@usuario.Rol" 
+                                data-activo="@usuario.Activo.ToString().ToLower()">
+                                <td class="px-6 py-4">
+                                    <div class="flex flex-col">
+                                        <span class="font-semibold text-text-light dark:text-text-dark">@(string.IsNullOrWhiteSpace(usuario.NombreCompleto) ? usuario.Correo : usuario.NombreCompleto)</span>
+                                        <span class="text-xs text-zinc-500 dark:text-zinc-400">ID: @usuario.UsuarioId</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-zinc-600 dark:text-zinc-300">@usuario.Correo</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold @ClaseRol(usuario.Rol)">@usuario.Rol</span>
+                                </td>
+                                <td class="px-6 py-4 text-zinc-600 dark:text-zinc-300">@usuario.FechaRegistro.ToLocalTime().ToString("dd/MM/yyyy HH:mm", cultura)</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold @ClaseEstado(usuario.Activo)">@((usuario.Activo ? "Activo" : "Inactivo"))</span>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="inline-flex items-center gap-3 text-sm font-medium">
+                                        <a asp-controller="Usuarios" asp-action="Details" asp-route-id="@usuario.UsuarioId" class="text-zinc-500 hover:text-primary">Detalles</a>
+                                        <span class="text-zinc-300">|</span>
+                                        <a asp-controller="Usuarios" asp-action="Edit" asp-route-id="@usuario.UsuarioId" class="text-primary hover:underline">Editar</a>
+                                        <span class="text-zinc-300">|</span>
+                                        <a asp-controller="Usuarios" asp-action="Delete" asp-route-id="@usuario.UsuarioId" class="hover:underline @(usuario.Activo ? "text-accent-error" : "text-green-600")">
+                                            @(usuario.Activo ? "Desactivar" : "Reactivar")
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="flex justify-between items-center px-6 py-4 border-t border-zinc-100 dark:border-zinc-700 text-sm text-zinc-500 dark:text-zinc-300">
+            <span>Mostrando @Model.Usuarios.Count usuario(s)</span>
+            <div class="flex items-center gap-2">
+                <button class="px-3 py-1 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 hover:border-primary">Anterior</button>
+                <button class="px-3 py-1 rounded-lg border border-primary bg-primary text-white">1</button>
+                <button class="px-3 py-1 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 hover:border-primary">Siguiente</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('search-input');
+            const filterRol = document.getElementById('filter-rol');
+            const filterEstado = document.getElementById('filter-estado');
+            const rows = document.querySelectorAll('.usuario-row');
+            
+            function filterTable() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const selectedRol = filterRol.value;
+                const selectedEstado = filterEstado.value;
+                
+                rows.forEach(row => {
+                    const nombre = row.dataset.nombre || '';
+                    const correo = row.dataset.correo || '';
+                    const rol = row.dataset.rol;
+                    const activo = row.dataset.activo;
+                    
+                    const matchSearch = nombre.includes(searchTerm) || correo.includes(searchTerm);
+                    const matchRol = !selectedRol || rol === selectedRol;
+                    const matchEstado = !selectedEstado || activo === selectedEstado;
+                    
+                    if (matchSearch && matchRol && matchEstado) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            }
+            
+            searchInput.addEventListener('input', filterTable);
+            filterRol.addEventListener('change', filterTable);
+            filterEstado.addEventListener('change', filterTable);
+        });
+    </script>
+}

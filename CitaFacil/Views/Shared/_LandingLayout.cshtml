@@ -1,0 +1,111 @@
+﻿<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - CitaFacil</title>
+
+    <!-- 1. Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <!-- 2. Carga de Fuentes y Iconos -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
+
+    <!-- 3. Carga de nuestro NUEVO CSS (para animaciones) -->
+    <link rel="stylesheet" href="~/css/landing-style.css" asp-append-version="true" />
+
+    <!-- 4. Configuración de Tailwind (con tus colores) -->
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#89CFF0", // Tu color de login
+                        "background-light": "#FFFFFF", // Un blanco limpio para el landing
+                        "background-dark": "#101c22",
+                        "text-light": "#333333",
+                        "text-dark": "#f0f0f0",
+                        "accent-success": "#98FB98",
+                        "accent-error": "#F08080",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.5rem", "lg": "0.75rem", "xl": "1rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-text-light dark:text-text-dark min-h-screen flex flex-col">
+
+    <!-- Header y Navbar rediseñado con Tailwind -->
+    <header class="bg-white dark:bg-zinc-800 shadow-sm sticky top-0 z-50">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <!-- Logo -->
+            <a class="text-2xl font-bold text-primary" asp-controller="Home" asp-action="Index">CitaFacil</a>
+
+            <!-- Links (Escritorio) -->
+            <div class="hidden md:flex items-center space-x-6">
+                <!-- Botones de Acción -->
+                <a class="bg-gray-100 dark:bg-zinc-700 text-gray-700 dark:text-gray-200 font-semibold px-5 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-zinc-600 transition-all duration-300"
+                   asp-controller="Account" asp-action="Login">
+                    Iniciar Sesión
+                </a>
+                <a class="bg-primary text-white font-semibold px-5 py-2 rounded-lg hover:bg-opacity-80 transition-all duration-300"
+                   asp-controller="Account" asp-action="Register">
+                    Registrarse
+                </a>
+            </div>
+
+            <!-- Botón de Menú Móvil (Hamburguesa) -->
+            <div class="md:hidden">
+                <button id="menu-toggle" type="button" class="text-gray-600 dark:text-gray-300 hover:text-primary focus:outline-none">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Menú Móvil (Oculto por defecto) -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white dark:bg-zinc-800 shadow-lg pb-4">
+            <a class="block px-6 py-3 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-700" asp-controller="Home" asp-action="Index">Inicio</a>
+            <div class="px-6 py-3">
+                <a class="block w-full text-center bg-primary text-white font-semibold px-5 py-2 rounded-lg hover:bg-opacity-80 transition-all duration-300 mb-2"
+                   asp-controller="Account" asp-action="Register">
+                    Registrarse
+                </a>
+                <a class="block w-full text-center bg-gray-100 dark:bg-zinc-700 text-gray-700 dark:text-gray-200 font-semibold px-5 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-zinc-600 transition-all duration-300"
+                   asp-controller="Account" asp-action="Login">
+                    Iniciar Sesión
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!--
+      flex-grow hace que el <main> empuje el <footer> hacia abajo
+    -->
+    <main role="main" class="flex-grow">
+        @RenderBody()
+    </main>
+
+    <!-- Footer rediseñado con Tailwind -->
+    <footer class="bg-white dark:bg-zinc-800 border-t border-gray-200 dark:border-zinc-700 mt-auto">
+        <div class="container mx-auto px-6 py-8 text-center text-zinc-500 dark:text-zinc-400">
+            &copy; 2025 - CitaFacil - <a asp-area="" asp-controller="Home" asp-action="Privacy" class="hover:text-primary">Privacy</a>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <!-- 5. Carga de nuestro NUEVO JS (para el menú móvil) -->
+    <script src="~/js/landing-script.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
+

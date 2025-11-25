@@ -1,0 +1,187 @@
+﻿@model CitaFacil.Models.Cita
+@using System.Globalization
+@using System.Linq
+@using CitaFacil.Constants
+
+@{
+    var esAdmin = User.IsInRole(Roles.Administrador);
+    var esDoctor = User.IsInRole(Roles.Doctor);
+    Layout = esAdmin ? "_AdminLayout" : esDoctor ? "_DoctorLayout" : "_PatientLayout";
+    ViewData["Title"] = "Detalle de la cita";
+
+    static string ConstruirNombreCompleto(string? nombre, string? apellido, string? segundoApellido)
+    {
+        var partes = new[] { nombre, apellido, segundoApellido }
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .Select(s => s!.Trim());
+        var resultado = string.Join(" ", partes);
+        return string.IsNullOrWhiteSpace(resultado) ? "--" : resultado;
+    }
+
+    static string ObtenerEtiquetaEstado(string? estado)
+    {
+        if (string.IsNullOrWhiteSpace(estado))
+        {
+            return "Pendiente";
+        }
+
+        var cultura = CultureInfo.GetCultureInfo("es-MX");
+        var texto = estado.Trim().ToLower(cultura);
+        return cultura.TextInfo.ToTitleCase(texto);
+    }
+
+    static string ObtenerClasesEstado(string? estado)
+    {
+        var codigo = (estado ?? string.Empty).Trim().ToUpperInvariant();
+        return codigo switch
+        {
+            "CONFIRMADA" => "bg-green-100 text-green-800 dark:bg-green-900/60 dark:text-green-300",
+            "COMPLETADA" => "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300",
+            "CANCELADA" => "bg-red-100 text-red-800 dark:bg-red-900/60 dark:text-red-300",
+            "REPROGRAMADA" => "bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300",
+            _ => "bg-sky-100 text-sky-800 dark:bg-sky-900/60 dark:text-sky-200"
+        };
+    }
+
+    var culturaEs = CultureInfo.GetCultureInfo("es-MX");
+    var fechaFormateada = Model.fecha.ToString("dddd, dd 'de' MMMM yyyy", culturaEs);
+    var horaFormateada = Model.hora.ToString(@"hh\:mm");
+    var paciente = ConstruirNombreCompleto(Model.Paciente?.nombre, Model.Paciente?.apellido, Model.Paciente?.segundo_apellido);
+    var doctor = ConstruirNombreCompleto(Model.Doctor?.nombre, Model.Doctor?.apellido, Model.Doctor?.segundo_apellido);
+    var estadoEtiqueta = ObtenerEtiquetaEstado(Model.estado);
+    var estadoClases = ObtenerClasesEstado(Model.estado);
+    var modalidad = Model.es_virtual ? "Virtual" : "Presencial";
+    var ubicacionDescripcion = Model.es_virtual
+        ? "Consulta virtual"
+        : (string.IsNullOrWhiteSpace(Model.Doctor?.consultorio) ? "Consultorio por confirmar" : Model.Doctor.consultorio);
+}
+
+<div class="space-y-8">
+    <div class="flex items-center justify-between gap-4">
+        <div class="space-y-1">
+            <h1 class="text-3xl font-bold tracking-[-0.03em] text-slate-900 dark:text-slate-100">Detalle de la cita</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Consulta la información completa de la cita seleccionada.</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+            @if (esAdmin)
+            {
+                <a asp-action="Edit" asp-route-id="@Model.id" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-300 dark:hover:border-primary dark:hover:text-primary">
+                    <span class="material-symbols-outlined text-sm">edit</span>
+                    Editar
+                </a>
+            }
+            <a asp-action="Index" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-300 dark:hover:border-primary dark:hover:text-primary">
+                <span class="material-symbols-outlined text-sm">arrow_back</span>
+                Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-[2fr,1fr]">
+        <section class="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-900/60">
+            <header class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-6 dark:border-slate-800">
+                <div>
+                    <h2 class="text-2xl font-semibold text-slate-900 dark:text-slate-50">@fechaFormateada</h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Horario programado: <span class="font-medium text-slate-700 dark:text-slate-200">@horaFormateada h</span></p>
+                </div>
+                <span class="inline-flex items-center gap-1 rounded-full px-4 py-2 text-xs font-semibold @estadoClases">
+                    <span class="material-symbols-outlined text-sm">radio_button_checked</span>
+                    @estadoEtiqueta
+                </span>
+            </header>
+
+            <div class="mt-6 space-y-6">
+                <div class="grid gap-6 sm:grid-cols-2">
+                    <div class="rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 dark:border-slate-800 dark:bg-slate-900/40">
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                <span class="material-symbols-outlined text-lg">person</span>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase text-slate-500">Paciente</p>
+                                <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">@paciente</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">ID: @Model.paciente_id</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 dark:border-slate-800 dark:bg-slate-900/40">
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-200">
+                                <span class="material-symbols-outlined text-lg">stethoscope</span>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase text-slate-500">Doctor</p>
+                                <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">@doctor</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">ID: @Model.doctor_id</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid gap-6 sm:grid-cols-2">
+                    <div class="rounded-xl border border-slate-200 px-5 py-4 dark:border-slate-800">
+                        <p class="text-xs uppercase text-slate-500">Modalidad</p>
+                        <p class="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-100">@modalidad</p>
+                        <p class="mt-2 text-xs uppercase text-slate-500">Ubicación</p>
+                        <p class="mt-1 text-sm text-slate-700 dark:text-slate-300">@ubicacionDescripcion</p>
+                    </div>
+
+                    <div class="rounded-xl border border-slate-200 px-5 py-4 dark:border-slate-800">
+                        <p class="text-xs uppercase text-slate-500">Duración estimada</p>
+                        <p class="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-100">@Model.duracion_minutos minutos</p>
+                        <p class="mt-2 text-xs uppercase text-slate-500">Creada el</p>
+                        <p class="mt-1 text-sm text-slate-700 dark:text-slate-300">@Model.creada_el.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
+                        @if (Model.actualizada_el.HasValue)
+                        {
+                            <p class="mt-2 text-xs uppercase text-slate-500">Última actualización</p>
+                            <p class="mt-1 text-sm text-slate-700 dark:text-slate-300">@Model.actualizada_el.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
+                        }
+                    </div>
+                </div>
+
+                <div class="rounded-xl border border-slate-200 px-5 py-4 dark:border-slate-800">
+                    <p class="text-xs uppercase text-slate-500">Motivo</p>
+                    <p class="mt-1 text-sm text-slate-700 dark:text-slate-300">@(!string.IsNullOrWhiteSpace(Model.motivo) ? Model.motivo : "Sin especificar")</p>
+                </div>
+
+                <div class="rounded-xl border border-slate-200 px-5 py-4 dark:border-slate-800">
+                    <p class="text-xs uppercase text-slate-500">Notas internas</p>
+                    @if (!string.IsNullOrWhiteSpace(Model.notas))
+                    {
+                        <p class="mt-1 whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-300">@Model.notas</p>
+                    }
+                    else
+                    {
+                        <p class="mt-1 text-sm italic text-slate-500 dark:text-slate-400">No se registraron notas adicionales.</p>
+                    }
+                </div>
+            </div>
+        </section>
+
+        <aside class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/60">
+            <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">Acciones rápidas</h2>
+            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Gestiona la cita desde este panel.</p>
+
+            <div class="mt-6 space-y-3">
+                <a asp-action="Index" class="flex items-center justify-between rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-300 dark:hover:border-primary dark:hover:text-primary">
+                    <span>Volver al listado</span>
+                    <span class="material-symbols-outlined text-base">arrow_forward</span>
+                </a>
+
+                @if (esAdmin)
+                {
+                    <a asp-action="Edit" asp-route-id="@Model.id" class="flex items-center justify-between rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-300 dark:hover:border-primary dark:hover:text-primary">
+                        <span>Editar cita</span>
+                        <span class="material-symbols-outlined text-base">edit</span>
+                    </a>
+                    <a asp-action="Delete" asp-route-id="@Model.id" class="flex items-center justify-between rounded-xl border border-red-200 px-4 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/40">
+                        <span>Cancelar cita</span>
+                        <span class="material-symbols-outlined text-base">delete</span>
+                    </a>
+                }
+            </div>
+        </aside>
+    </div>
+</div>

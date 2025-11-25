@@ -1,0 +1,108 @@
+﻿@model CitaFacil.Models.Paciente
+@using System.Linq
+@{
+    Layout = "_PatientLayout";
+    ViewData["Title"] = "Perfil del paciente";
+}
+
+<div class="space-y-8">
+    <header class="flex flex-wrap justify-between items-start gap-4">
+        <div class="space-y-2">
+            <h1 class="text-4xl font-black tracking-[-0.033em] text-text-light dark:text-text-dark">Perfil y configuración</h1>
+            <p class="text-zinc-500 dark:text-zinc-400">Actualiza tu información personal y de contacto para agilizar tus citas.</p>
+        </div>
+        <a asp-controller="Pacientes" asp-action="Dashboard" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm text-zinc-600 dark:text-zinc-300 hover:border-primary">Regresar al panel</a>
+    </header>
+
+    <section class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-6">
+        <aside class="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-700 p-6 space-y-4">
+            <div class="flex flex-col items-center gap-3 text-center">
+                @if (!string.IsNullOrWhiteSpace(Model.Usuario?.foto_url))
+                {
+                    <img src="@Model.Usuario.foto_url" alt="Foto de perfil" class="h-24 w-24 rounded-full object-cover" />
+                }
+                else
+                {
+                    <span class="material-symbols-outlined text-7xl text-primary">account_circle</span>
+                }
+                <div>
+                    <p class="text-lg font-semibold text-text-light dark:text-text-dark">@(string.Join(" ", new[] { Model.Usuario?.nombre, Model.apellido, Model.segundo_apellido }.Where(s => !string.IsNullOrWhiteSpace(s))))</p>
+                    <p class="text-sm text-zinc-500 dark:text-zinc-400">Paciente desde @Model.Usuario?.creado_el.ToLocalTime().ToString("yyyy")</p>
+                </div>
+            </div>
+            <dl class="text-sm text-zinc-600 dark:text-zinc-300 space-y-2">
+                <div class="flex justify-between">
+                    <dt>Correo:</dt>
+                    <dd>@(Model.Usuario?.correo ?? "No registrado")</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt>Celular:</dt>
+                    <dd>@(Model.Usuario?.celular ?? "No registrado")</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt>Fecha de nacimiento:</dt>
+                    <dd>@Model.fecha_nacimiento.ToString("dd/MM/yyyy")</dd>
+                </div>
+            </dl>
+            <div class="space-y-2">
+                <form asp-controller="Account" asp-action="Logout" method="post" class="inline">
+                    <button type="submit" class="flex w-full items-center justify-center gap-2 px-4 py-2 rounded-lg bg-red-100/60 text-red-700 text-sm font-semibold">
+                        <span class="material-symbols-outlined text-base">logout</span>
+                        Cerrar sesión
+                    </button>
+                </form>
+            </div>
+        </aside>
+
+        <div class="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-700">
+            <form class="grid grid-cols-1 gap-6 p-6">
+                <div class="space-y-2">
+                    <h2 class="text-xl font-semibold text-text-light dark:text-text-dark">Información personal</h2>
+                    <p class="text-sm text-zinc-500 dark:text-zinc-400">Actualiza tu información básica. Los cambios aplicarán a futuras citas.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <label class="flex flex-col gap-2 text-sm text-text-light dark:text-text-dark">
+                        Nombre(s)
+                        <input value="@Model.Usuario?.nombre" class="form-input rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 focus:ring-primary focus:border-primary" disabled />
+                    </label>
+                    <label class="flex flex-col gap-2 text-sm text-text-light dark:text-text-dark">
+                        Apellido paterno
+                        <input value="@Model.apellido" class="form-input rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 focus:ring-primary focus:border-primary" disabled />
+                    </label>
+                    <label class="flex flex-col gap-2 text-sm text-text-light dark:text-text-dark">
+                        Apellido materno
+                        <input value="@Model.segundo_apellido" class="form-input rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 focus:ring-primary focus:border-primary" disabled />
+                    </label>
+                    <label class="flex flex-col gap-2 text-sm text-text-light dark:text-text-dark">
+                        Fecha de nacimiento
+                        <input value="@Model.fecha_nacimiento.ToString("yyyy-MM-dd")" class="form-input rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 focus:ring-primary focus:border-primary" type="date" disabled />
+                    </label>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <label class="flex flex-col gap-2 text-sm text-text-light dark:text-text-dark">
+                        Correo electrónico
+                        <input value="@Model.Usuario?.correo" class="form-input rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 focus:ring-primary focus:border-primary" type="email" disabled />
+                    </label>
+                    <label class="flex flex-col gap-2 text-sm text-text-light dark:text-text-dark">
+                        Celular
+                        <input value="@(Model.Usuario?.celular)" class="form-input rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 focus:ring-primary focus:border-primary" disabled />
+                    </label>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4">
+                    <label class="flex flex-col gap-2 text-sm text-text-light dark:text-text-dark">
+                        Dirección
+                        <textarea rows="3" class="form-textarea rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 focus:ring-primary focus:border-primary" disabled>@Model.direccion</textarea>
+                    </label>
+                </div>
+
+                <div class="flex flex-wrap gap-3 justify-end">
+                    <span class="text-sm text-zinc-500 dark:text-zinc-400">La edición del perfil estará disponible próximamente.</span>
+                    <a asp-controller="Pacientes" asp-action="Dashboard" class="px-4 py-2 rounded-lg border border-zinc-200 dark:border-zinc-600 text-sm text-zinc-600 dark:text-zinc-300">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </section>
+</div>

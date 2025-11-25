@@ -1,0 +1,42 @@
+@{
+    Layout = null;
+    ViewData["Title"] = "Acceso denegado";
+}
+
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CitaFácil - Acceso denegado</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+</head>
+<body class="flex h-full items-center justify-center bg-[#f6f7f8] font-[Inter] text-[#0d171b]">
+    <section class="max-w-lg space-y-6 rounded-3xl border border-slate-200 bg-white px-10 py-12 text-center shadow-xl">
+        <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-rose-100 text-rose-500">
+            <span class="material-symbols-outlined text-3xl">block</span>
+        </div>
+        <div class="space-y-3">
+            <h1 class="text-3xl font-black tracking-[-0.03em]">No tienes permisos suficientes</h1>
+            <p class="text-sm text-slate-500">
+                El recurso al que intentas acceder requiere privilegios adicionales. Si crees que se trata de un error,
+                comunícate con el administrador del sistema o vuelve a iniciar sesión con otra cuenta.
+            </p>
+        </div>
+        <div class="flex flex-wrap justify-center gap-4 text-sm font-semibold">
+            <a asp-controller="Home" asp-action="Index" class="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-white shadow-sm transition hover:bg-primary/90">
+                <span class="material-symbols-outlined text-sm">home</span>
+                Ir al inicio
+            </a>
+            <form asp-controller="Account" asp-action="Logout" method="post" class="inline">
+                <button type="submit" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-5 py-2 text-slate-600 transition hover:border-primary hover:text-primary">
+                    <span class="material-symbols-outlined text-sm">logout</span>
+                    Cerrar sesión
+                </button>
+            </form>
+        </div>
+    </section>
+</body>
+</html>
+

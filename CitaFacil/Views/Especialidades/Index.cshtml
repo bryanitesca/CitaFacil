@@ -1,0 +1,273 @@
+﻿@model IEnumerable<CitaFacil.Models.Especialidad>
+@{
+    // 1. Le decimos que use el NUEVO layout de Admin
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Gestión de Especialidades";
+}
+
+<!-- Título y Botón de Crear -->
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+    <div>
+        <h1 class="text-4xl font-black tracking-tighter text-text-light dark:text-text-dark">
+            Gestión de Especialidades
+        </h1>
+        <p class="text-lg text-zinc-500 dark:text-zinc-400">
+            Administra las especialidades médicas.
+        </p>
+    </div>
+    <button onclick="openCreateModal()" class="flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors duration-200">
+        <span class="material-symbols-outlined">add</span>
+        <span>Crear Nueva Especialidad</span>
+    </button>
+</div>
+
+<!-- Tabla de Contenido -->
+<div class="bg-white dark:bg-zinc-800 rounded-lg shadow-md overflow-hidden">
+    <!-- Tabla de Especialidades -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-left">
+            <thead class="bg-zinc-50 dark:bg-zinc-700">
+                <tr>
+                    <th class="px-6 py-3 text-sm font-semibold text-zinc-600 dark:text-zinc-300 uppercase">Nombre</th>
+                    <th class="px-6 py-3 text-sm font-semibold text-zinc-600 dark:text-zinc-300 uppercase">Descripción</th>
+                    <th class="px-6 py-3 text-sm font-semibold text-zinc-600 dark:text-zinc-300 uppercase">Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
+                @foreach (var item in Model)
+                {
+                    <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-700/50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="font-medium text-text-light dark:text-text-dark">@Html.DisplayFor(modelItem => item.nombre)</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-zinc-600 dark:text-zinc-300 line-clamp-2">@Html.DisplayFor(modelItem => item.descripcion)</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button onclick="openDetailsModal(@item.id, '@Html.Raw(item.nombre?.Replace("'", "\\'"))', '@Html.Raw(item.descripcion?.Replace("'", "\\'"))')" class="text-zinc-600 dark:text-zinc-300 hover:underline mr-3">
+                                <span class="material-symbols-outlined text-base align-middle">visibility</span> Detalles
+                            </button>
+                            <button onclick="openEditModal(@item.id, '@Html.Raw(item.nombre?.Replace("'", "\\'"))', '@Html.Raw(item.descripcion?.Replace("'", "\\'"))')" class="text-primary hover:underline mr-3">
+                                <span class="material-symbols-outlined text-base align-middle">edit</span> Editar
+                            </button>
+                            <button onclick="openDeleteModal(@item.id, '@Html.Raw(item.nombre?.Replace("'", "\\'"))')" class="text-accent-error hover:underline">
+                                <span class="material-symbols-outlined text-base align-middle">delete</span> Eliminar
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Crear Especialidad -->
+<div id="modal-crear" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50">
+    <div class="flex min-h-screen items-center justify-center p-4">
+        <div class="relative w-full max-w-lg rounded-xl bg-white dark:bg-zinc-800 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-700 p-6">
+                <h3 class="text-xl font-bold text-text-light dark:text-text-dark">Crear Nueva Especialidad</h3>
+                <button onclick="closeCreateModal()" class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <form id="form-crear" asp-action="Create" method="post" class="p-6 space-y-4">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-accent-error text-sm"></div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-text-light dark:text-text-dark mb-2">Nombre *</label>
+                    <input type="text" name="nombre" required class="w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 focus:ring-primary focus:border-primary text-text-light dark:text-text-dark" placeholder="Ej: Cardiología" />
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-text-light dark:text-text-dark mb-2">Descripción</label>
+                    <textarea name="descripcion" rows="3" class="w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 focus:ring-primary focus:border-primary text-text-light dark:text-text-dark" placeholder="Descripción de la especialidad"></textarea>
+                </div>
+            </form>
+            
+            <div class="flex items-center justify-end gap-3 border-t border-zinc-200 dark:border-zinc-700 p-6">
+                <button onclick="closeCreateModal()" class="px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700">Cancelar</button>
+                <button onclick="document.getElementById('form-crear').submit()" class="px-4 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark">Crear Especialidad</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Especialidad -->
+<div id="modal-editar" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50">
+    <div class="flex min-h-screen items-center justify-center p-4">
+        <div class="relative w-full max-w-lg rounded-xl bg-white dark:bg-zinc-800 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-700 p-6">
+                <h3 class="text-xl font-bold text-text-light dark:text-text-dark">Editar Especialidad</h3>
+                <button onclick="closeEditModal()" class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <form id="form-editar" asp-action="Edit" method="post" class="p-6 space-y-4">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="edit-id" name="id" />
+                
+                <div>
+                    <label class="block text-sm font-semibold text-text-light dark:text-text-dark mb-2">Nombre *</label>
+                    <input type="text" id="edit-nombre" name="nombre" required class="w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 focus:ring-primary focus:border-primary text-text-light dark:text-text-dark" />
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-text-light dark:text-text-dark mb-2">Descripción</label>
+                    <textarea id="edit-descripcion" name="descripcion" rows="3" class="w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 focus:ring-primary focus:border-primary text-text-light dark:text-text-dark"></textarea>
+                </div>
+            </form>
+            
+            <div class="flex items-center justify-end gap-3 border-t border-zinc-200 dark:border-zinc-700 p-6">
+                <button onclick="closeEditModal()" class="px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700">Cancelar</button>
+                <button onclick="document.getElementById('form-editar').submit()" class="px-4 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Detalles Especialidad -->
+<div id="modal-detalles" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50">
+    <div class="flex min-h-screen items-center justify-center p-4">
+        <div class="relative w-full max-w-lg rounded-xl bg-white dark:bg-zinc-800 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-700 p-6">
+                <h3 class="text-xl font-bold text-text-light dark:text-text-dark">Detalles de Especialidad</h3>
+                <button onclick="closeDetailsModal()" class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <div class="p-6 space-y-4">
+                <div>
+                    <p class="text-sm font-semibold text-zinc-500 dark:text-zinc-400 mb-1">Nombre</p>
+                    <p id="details-nombre" class="text-lg font-medium text-text-light dark:text-text-dark"></p>
+                </div>
+                
+                <div>
+                    <p class="text-sm font-semibold text-zinc-500 dark:text-zinc-400 mb-1">Descripción</p>
+                    <p id="details-descripcion" class="text-base text-zinc-600 dark:text-zinc-300"></p>
+                </div>
+            </div>
+            
+            <div class="flex items-center justify-end gap-3 border-t border-zinc-200 dark:border-zinc-700 p-6">
+                <button onclick="closeDetailsModal()" class="px-4 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Eliminar Especialidad -->
+<div id="modal-eliminar" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50">
+    <div class="flex min-h-screen items-center justify-center p-4">
+        <div class="relative w-full max-w-md rounded-xl bg-white dark:bg-zinc-800 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-700 p-6">
+                <h3 class="text-xl font-bold text-accent-error">Confirmar Eliminación</h3>
+                <button onclick="closeDeleteModal()" class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <div class="p-6">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="flex-shrink-0">
+                        <span class="material-symbols-outlined text-5xl text-accent-error">warning</span>
+                    </div>
+                    <div>
+                        <p class="text-base text-text-light dark:text-text-dark mb-2">¿Estás seguro de que deseas eliminar esta especialidad?</p>
+                        <p class="text-sm font-semibold text-accent-error" id="delete-nombre"></p>
+                        <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-2">Esta acción no se puede deshacer.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <form id="form-eliminar" asp-action="Delete" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="delete-id" name="id" />
+            </form>
+            
+            <div class="flex items-center justify-end gap-3 border-t border-zinc-200 dark:border-zinc-700 p-6">
+                <button onclick="closeDeleteModal()" class="px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700">Cancelar</button>
+                <button onclick="document.getElementById('form-eliminar').submit()" class="px-4 py-2 rounded-lg bg-accent-error text-white font-semibold hover:bg-red-700">Sí, Eliminar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Modal Crear
+        function openCreateModal() {
+            document.getElementById('modal-crear').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeCreateModal() {
+            document.getElementById('modal-crear').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+            document.getElementById('form-crear').reset();
+        }
+        
+        // Modal Editar
+        function openEditModal(id, nombre, descripcion) {
+            document.getElementById('edit-id').value = id;
+            document.getElementById('edit-nombre').value = nombre;
+            document.getElementById('edit-descripcion').value = descripcion || '';
+            document.getElementById('modal-editar').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeEditModal() {
+            document.getElementById('modal-editar').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+        
+        // Modal Detalles
+        function openDetailsModal(id, nombre, descripcion) {
+            document.getElementById('details-nombre').textContent = nombre;
+            document.getElementById('details-descripcion').textContent = descripcion || 'Sin descripción';
+            document.getElementById('modal-detalles').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeDetailsModal() {
+            document.getElementById('modal-detalles').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+        
+        // Modal Eliminar
+        function openDeleteModal(id, nombre) {
+            document.getElementById('delete-id').value = id;
+            document.getElementById('delete-nombre').textContent = nombre;
+            document.getElementById('modal-eliminar').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeDeleteModal() {
+            document.getElementById('modal-eliminar').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+        
+        // Cerrar modales con ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeCreateModal();
+                closeEditModal();
+                closeDetailsModal();
+                closeDeleteModal();
+            }
+        });
+        
+        // Cerrar modales haciendo clic fuera
+        document.querySelectorAll('#modal-crear, #modal-editar, #modal-detalles, #modal-eliminar').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.add('hidden');
+                    document.body.style.overflow = 'auto';
+                }
+            });
+        });
+    </script>
+}

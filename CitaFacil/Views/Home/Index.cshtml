@@ -1,0 +1,80 @@
+﻿@{
+    // 1. Le decimos que use el NUEVO layout de Tailwind
+    Layout = "_LandingLayout";
+    ViewData["Title"] = "Bienvenido a CitaFacil";
+}
+
+<!--
+    Sección Héroe (Hero Section)
+    - Usamos un fondo degradado con tu color primario.
+    - Usamos la animación "fade-in-up" que ya tienes en landing-style.css
+-->
+<div class="relative w-full overflow-hidden">
+    <!-- Fondo con gradiente y figura geométrica (círculo) -->
+    <div class="absolute inset-0 -z-10 bg-gradient-to-b from-primary/10 via-white to-white dark:from-primary/20 dark:via-background-dark dark:to-background-dark"></div>
+    <div class="absolute -top-1/4 left-1/2 -z-10 h-1/2 w-1/2 -translate-x-1/2 transform-gpu rounded-full bg-primary/10 blur-3xl opacity-50"></div>
+
+    <div class="container mx-auto px-6 py-24 text-center fade-in-up">
+        <h1 class="text-4xl font-black tracking-tighter text-text-light dark:text-text-dark sm:text-6xl">
+            Bienvenido a <span class="text-primary">CitaFacil</span>
+        </h1>
+        <p class="mt-6 text-lg leading-8 text-zinc-600 dark:text-zinc-300 max-w-2xl mx-auto">
+            Tu salud, organizada en un solo lugar. Agenda tus citas médicas de forma rápida, sencilla y con los mejores especialistas.
+        </p>
+        <!--
+          BOTONES ACTUALIZADOS:
+          - Se eliminaron los dos botones redundantes.
+          - Se agregó un solo botón "Únete Ahora" con un gradiente de color.
+        -->
+        <div class="mt-10 flex items-center justify-center">
+            <a asp-controller="Account" asp-action="Register"
+               class="rounded-lg bg-gradient-to-r from-primary to-blue-500 px-8 py-4 text-lg font-semibold text-white shadow-lg hover:scale-105 transform transition-all duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+                Únete Ahora
+            </a>
+        </div>
+    </div>
+</div>
+
+<!--
+    Sección de Características (Features)
+    - Usamos tarjetas (cards) con sombras, bordes redondeados e íconos.
+-->
+<div class="container mx-auto px-6 py-20">
+    <div class="grid grid-cols-1 gap-y-12 md:grid-cols-3 md:gap-x-8 lg:gap-x-12">
+
+        <!-- Característica 1: Agenda Fácil -->
+        <div class="flex flex-col items-center text-center fade-in-up" style="animation-delay: 0.2s;">
+            <div class="flex h-16 w-16 items-center justify-center rounded-full bg-primary/20 text-primary mb-6">
+                <span class="material-symbols-outlined" style="font-size: 36px;">event_available</span>
+            </div>
+            <h3 class="text-2xl font-bold text-text-light dark:text-text-dark mb-3">Agenda Fácil</h3>
+            <p class="text-zinc-600 dark:text-zinc-300">
+                Encuentra a tu médico por especialidad y mira sus horarios disponibles en tiempo real. Agenda tu cita en menos de dos minutos.
+            </p>
+        </div>
+
+        <!-- Característica 2: Recordatorios -->
+        <div class="flex flex-col items-center text-center fade-in-up" style="animation-delay: 0.4s;">
+            <div class="flex h-16 w-16 items-center justify-center rounded-full bg-primary/20 text-primary mb-6">
+                <span class="material-symbols-outlined" style="font-size: 36px;">notifications_active</span>
+            </div>
+            <h3 class="text-2xl font-bold text-text-light dark:text-text-dark mb-3">Recordatorios</h3>
+            <p class="text-zinc-600 dark:text-zinc-300">
+                Nunca olvides una cita. Recibe notificaciones internas dentro de la plataforma y alertas oportunas directamente en tu panel un día antes de tu consulta.
+            </p>
+        </div>
+
+        <!-- Característica 3: Gestión de Perfil -->
+        <div class="flex flex-col items-center text-center fade-in-up" style="animation-delay: 0.6s;">
+            <div class="flex h-16 w-16 items-center justify-center rounded-full bg-primary/20 text-primary mb-6">
+                <span class="material-symbols-outlined" style="font-size: 36px;">manage_accounts</span>
+            </div>
+            <h3 class="text-2xl font-bold text-text-light dark:text-text-dark mb-3">Gestión de Perfil</h3>
+            <p class="text-zinc-600 dark:text-zinc-300">
+                Tanto pacientes como doctores pueden gestionar sus perfiles, actualizar su información y ver su historial de citas completo.
+                </s:p>
+        </div>
+
+    </div>
+</div>
+

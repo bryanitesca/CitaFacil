@@ -1,0 +1,244 @@
+﻿@model CitaFacil.ViewModels.CreateUserViewModel
+@using CitaFacil.Constants
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Crear Usuario";
+
+    var selectedRole = Model?.rol ?? string.Empty;
+    var isDoctor = string.Equals(selectedRole, Roles.Doctor, StringComparison.OrdinalIgnoreCase);
+    var isPaciente = string.Equals(selectedRole, Roles.Paciente, StringComparison.OrdinalIgnoreCase);
+    var hasErrors = !ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0;
+}
+
+<!-- Título de la Página -->
+<div class="mb-8">
+    <h1 class="text-4xl font-black tracking-tighter text-text-light dark:text-text-dark">
+        Crear Nuevo Usuario
+    </h1>
+    <p class="text-lg text-zinc-500 dark:text-zinc-400">
+        Completa los campos para registrar un nuevo usuario en el sistema.
+    </p>
+</div>
+
+<!-- Formulario de Creación -->
+<div class="bg-white dark:bg-zinc-800 rounded-lg shadow-md">
+    <form asp-action="Create" enctype="multipart/form-data" class="p-6 lg:p-8">
+
+        <!-- Caja de Errores -->
+        <div class="mb-6 rounded-lg bg-accent-error/10 p-4 text-sm text-accent-error @(hasErrors ? string.Empty : "hidden")" id="validation-summary-card">
+            <div class="flex items-center gap-2 font-semibold">
+                <span class="material-symbols-outlined">error</span>
+                <span>Por favor corrige los siguientes errores:</span>
+            </div>
+            <div asp-validation-summary="All" class="mt-2 space-y-1"></div>
+        </div>
+
+        <div class="mb-6 rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
+            <p class="font-semibold text-text-light dark:text-text-dark">Requisitos por rol:</p>
+            <ul class="mt-2 list-disc pl-5 space-y-1">
+                <li><span class="font-semibold">Administrador:</span> solo completa los datos básicos de la cuenta.</li>
+                <li><span class="font-semibold">Doctor:</span> se solicitarán licencia, especialidad y fotografía profesional.</li>
+                <li><span class="font-semibold">Paciente:</span> se requerirá la fecha de nacimiento.</li>
+            </ul>
+        </div>
+
+        <!-- Campos de Usuario (Siempre visibles) -->
+        <h3 class="text-lg font-semibold text-text-light dark:text-text-dark border-b dark:border-zinc-700 pb-2 mb-6">1. Datos de la Cuenta</h3>
+        <div class="grid grid-cols-12 gap-6">
+
+            <div class="col-span-12 lg:col-span-4">
+                <label asp-for="nombre" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Nombre(s) <span class="text-accent-error">*</span></label>
+                <input asp-for="nombre" class="mt-1 block w-full rounded-lg border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 shadow-sm focus:border-primary focus:ring-primary" />
+                <span asp-validation-for="nombre" class="mt-1 text-sm text-accent-error"></span>
+            </div>
+
+            <div class="col-span-12 lg:col-span-4">
+                <label asp-for="apellido" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Apellido paterno <span class="text-accent-error">*</span></label>
+                <input asp-for="apellido" class="mt-1 block w-full rounded-lg border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 shadow-sm focus:border-primary focus:ring-primary" />
+                <span asp-validation-for="apellido" class="mt-1 text-sm text-accent-error"></span>
+            </div>
+
+            <div class="col-span-12 lg:col-span-4">
+                <label asp-for="segundo_apellido" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Segundo apellido <span class="text-xs text-zinc-500 font-normal">(Opcional)</span></label>
+                <input asp-for="segundo_apellido" class="mt-1 block w-full rounded-lg border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 shadow-sm focus:border-primary focus:ring-primary" />
+                <span asp-validation-for="segundo_apellido" class="mt-1 text-sm text-accent-error"></span>
+            </div>
+
+            <div class="col-span-12 lg:col-span-6">
+                <label asp-for="usuario" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Nombre de Usuario <span class="text-accent-error">*</span></label>
+                <input asp-for="usuario" class="mt-1 block w-full rounded-lg border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 shadow-sm focus:border-primary focus:ring-primary" />
+                <span asp-validation-for="usuario" class="mt-1 text-sm text-accent-error"></span>
+            </div>
+
+            <!-- Campo Rol (El Selector!) -->
+            <div class="col-span-12 lg:col-span-6">
+                <label asp-for="rol" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Rol del Usuario <span class="text-accent-error">*</span></label>
+                <select asp-for="rol" asp-items="ViewBag.RolesList" id="rolSelector" class="mt-1 block w-full rounded-lg border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 shadow-sm focus:border-primary focus:ring-primary">
+                    <option value="">-- Seleccionar un Rol --</option>
+                </select>
+                <span asp-validation-for="rol" class="mt-1 text-sm text-accent-error"></span>
+            </div>
+
+            <!-- Campo Contraseña -->
+            <div class="col-span-12 lg:col-span-6">
+                <label asp-for="contraseña" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Contraseña <span class="text-accent-error">*</span></label>
+                <input asp-for="contraseña" type="password" class="mt-1 block w-full rounded-lg border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 shadow-sm focus:border-primary focus:ring-primary" />
+                <span asp-validation-for="contraseña" class="mt-1 text-sm text-accent-error"></span>
+            </div>
+
+            <div class="col-span-12 lg:col-span-6">
+                <label asp-for="confirmar_contraseña" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Confirmar contraseña <span class="text-accent-error">*</span></label>
+                <input asp-for="confirmar_contraseña" type="password" class="mt-1 block w-full rounded-lg border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 shadow-sm focus:border-primary focus:ring-primary" />
+                <span asp-validation-for="confirmar_contraseña" class="mt-1 text-sm text-accent-error"></span>
+            </div>
+
+            <!-- Campo Correo -->
+            <div class="col-span-12 lg:col-span-6">
+                <label asp-for="correo" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Correo Electrónico <span class="text-accent-error">*</span></label>
+                <input asp-for="correo" type="email" class="mt-1 block w-full rounded-lg border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 shadow-sm focus:border-primary focus:ring-primary" />
+                <span asp-validation-for="correo" class="mt-1 text-sm text-accent-error"></span>
+            </div>
+
+            <!-- Campo Celular -->
+            <div class="col-span-12 lg:col-span-6">
+                <label asp-for="celular" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Celular <span class="text-xs text-zinc-500 font-normal">(Opcional)</span></label>
+                <input asp-for="celular" class="mt-1 block w-full rounded-lg border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 shadow-sm focus:border-primary focus:ring-primary" />
+                <span asp-validation-for="celular" class="mt-1 text-sm text-accent-error"></span>
+            </div>
+
+        </div>
+
+        <!--
+            ============================================================
+            =                CAMPOS DINÁMICOS DE DOCTOR                =
+            ============================================================
+        -->
+        <div id="doctorFields" class="mt-8 @(isDoctor ? string.Empty : "hidden")">
+            <h3 class="text-lg font-semibold text-text-light dark:text-text-dark border-b dark:border-zinc-700 pb-2 mb-6">2. Perfil del Doctor</h3>
+            <div class="grid grid-cols-12 gap-6">
+                <div class="col-span-12 lg:col-span-6">
+                    <label asp-for="foto" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Fotografía profesional <span class="text-accent-error">*</span></label>
+                    <input asp-for="foto" type="file" accept=".jpg,.jpeg,.png" class="mt-1 block w-full cursor-pointer rounded-lg border border-dashed border-zinc-300 bg-white px-3 py-2 text-sm shadow-sm file:mr-4 file:rounded-md file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-primary-dark dark:border-zinc-600 dark:bg-zinc-900" data-role-required="Doctor" required="@(isDoctor ? "required" : null)" />
+                    <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Obligatoria para doctores. Máximo 4 MB. Formatos: jpg, jpeg, png.</p>
+                    <span asp-validation-for="foto" class="mt-1 text-sm text-accent-error"></span>
+                </div>
+                <div class="col-span-12 lg:col-span-6">
+                    <label asp-for="licencia" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Licencia (Cédula) <span class="text-accent-error">*</span></label>
+                    <input asp-for="licencia" class="mt-1 block w-full rounded-lg border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 shadow-sm focus:border-primary focus:ring-primary" data-role-required="Doctor" required="@(isDoctor ? "required" : null)" />
+                    <span asp-validation-for="licencia" class="mt-1 text-sm text-accent-error"></span>
+                </div>
+                <div class="col-span-12 lg:col-span-6">
+                    <label asp-for="especialidad_id" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Especialidad <span class="text-accent-error">*</span></label>
+                    <select asp-for="especialidad_id" asp-items="ViewBag.EspecialidadesList" class="mt-1 block w-full rounded-lg border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 shadow-sm focus:border-primary focus:ring-primary" data-role-required="Doctor" required="@(isDoctor ? "required" : null)">
+                        <option value="">-- Seleccionar Especialidad --</option>
+                    </select>
+                    <span asp-validation-for="especialidad_id" class="mt-1 text-sm text-accent-error"></span>
+                </div>
+                <div class="col-span-12 lg:col-span-6">
+                    <label asp-for="consultorio" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Consultorio <span class="text-xs text-zinc-500 font-normal">(Opcional)</span></label>
+                    <input asp-for="consultorio" class="mt-1 block w-full rounded-lg border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 shadow-sm focus:border-primary focus:ring-primary" />
+                    <span asp-validation-for="consultorio" class="mt-1 text-sm text-accent-error"></span>
+                </div>
+                <div class="col-span-12">
+                    <label asp-for="biografia" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Biografía <span class="text-xs text-zinc-500 font-normal">(Opcional)</span></label>
+                    <textarea asp-for="biografia" rows="3" class="mt-1 block w-full rounded-lg border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 shadow-sm focus:border-primary focus:ring-primary"></textarea>
+                    <span asp-validation-for="biografia" class="mt-1 text-sm text-accent-error"></span>
+                </div>
+            </div>
+        </div>
+
+        <!--
+            ============================================================
+            =               CAMPOS DINÁMICOS DE PACIENTE               =
+            ============================================================
+        -->
+        <div id="pacienteFields" class="mt-8 @(isPaciente ? string.Empty : "hidden")">
+            <h3 class="text-lg font-semibold text-text-light dark:text-text-dark border-b dark:border-zinc-700 pb-2 mb-6">2. Perfil del Paciente</h3>
+            <div class="grid grid-cols-12 gap-6">
+                <div class="col-span-12 lg:col-span-6">
+                    <label asp-for="fecha_nacimiento" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Fecha de Nacimiento <span class="text-accent-error">*</span></label>
+                    <input asp-for="fecha_nacimiento" type="date" class="mt-1 block w-full rounded-lg border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 shadow-sm focus:border-primary focus:ring-primary" data-role-required="Paciente" required="@(isPaciente ? "required" : null)" />
+                    <span asp-validation-for="fecha_nacimiento" class="mt-1 text-sm text-accent-error"></span>
+                </div>
+                <div class="col-span-12 lg:col-span-6">
+                    <label asp-for="genero" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Género <span class="text-xs text-zinc-500 font-normal">(Opcional)</span></label>
+                    <input asp-for="genero" class="mt-1 block w-full rounded-lg border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 shadow-sm focus:border-primary focus:ring-primary" />
+                </div>
+                <div class="col-span-12">
+                    <label asp-for="direccion" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Dirección <span class="text-xs text-zinc-500 font-normal">(Opcional)</span></label>
+                    <input asp-for="direccion" class="mt-1 block w-full rounded-lg border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 shadow-sm focus:border-primary focus:ring-primary" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="flex items-center justify-end gap-4 border-t dark:border-zinc-700 pt-6 mt-8">
+            <a asp-action="Index" class="px-5 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-700 text-text-light dark:text-text-dark font-semibold hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors duration-200">
+                Cancelar
+            </a>
+            <button type="submit" class="flex items-center justify-center gap-2 px-5 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors duration-200">
+                <span class="material-symbols-outlined">save</span>
+                Guardar Usuario
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Link para volver a la lista -->
+<div class="mt-6">
+    <a asp-action="Index" class="flex items-center gap-2 text-primary hover:underline">
+        <span class="material-symbols-outlined">arrow_back</span>
+        Volver a la lista
+    </a>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <!-- Este script oculta el bloque de error si no hay errores -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // --- LÓGICA PARA EL FORMULARIO DINÁMICO ---
+            const rolSelector = document.getElementById('rolSelector');
+            const doctorFields = document.getElementById('doctorFields');
+            const pacienteFields = document.getElementById('pacienteFields');
+            const roleRequiredFields = document.querySelectorAll('[data-role-required]');
+
+            function updateFieldRequirements(selectedRol) {
+                roleRequiredFields.forEach(field => {
+                    const roles = field.dataset.roleRequired.split(',').map(r => r.trim());
+                    const shouldRequire = roles.includes(selectedRol);
+                    field.toggleAttribute('required', shouldRequire);
+                    field.setAttribute('aria-required', shouldRequire ? 'true' : 'false');
+                });
+            }
+
+            function toggleFields() {
+                const selectedRol = rolSelector.value;
+
+                // Ocultar ambos por defecto
+                doctorFields.classList.add('hidden');
+                pacienteFields.classList.add('hidden');
+
+                if (selectedRol === 'Doctor') {
+                    doctorFields.classList.remove('hidden');
+                } else if (selectedRol === 'Paciente') {
+                    pacienteFields.classList.remove('hidden');
+                }
+
+                updateFieldRequirements(selectedRol);
+            }
+
+            // Añadir el listener
+            if (rolSelector) {
+                rolSelector.addEventListener('change', toggleFields);
+                toggleFields();
+            } else {
+                updateFieldRequirements('');
+            }
+        });
+    </script>
+}
+

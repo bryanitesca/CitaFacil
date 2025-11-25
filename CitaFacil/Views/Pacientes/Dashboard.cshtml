@@ -1,0 +1,390 @@
+@using System.Globalization
+@using System.Linq
+@model CitaFacil.ViewModels.PatientDashboardViewModel
+@{
+    Layout = "_PatientLayout";
+    ViewData["Title"] = "Dashboard del Paciente";
+    var cultura = new CultureInfo("es-MX");
+}
+
+<!-- Main Content -->
+<main class="flex-1 p-8">
+    <div class="flex flex-wrap justify-between gap-3 items-center mb-8">
+        <div class="flex flex-col gap-1">
+            <p class="text-slate-800 text-4xl font-black leading-tight tracking-[-0.033em]">¡Bienvenido de vuelta, @(Model.Paciente?.nombre ?? "Paciente")!</p>
+            <p class="text-slate-500 text-base font-normal leading-normal">Aquí tienes un resumen de tus citas médicas y registros.</p>
+        </div>
+        <div class="relative">
+            <button id="btn-notifications" class="flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 w-12 bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors relative">
+                <span class="material-symbols-outlined">notifications</span>
+                <span id="notification-badge" class="hidden absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+            <!-- Dropdown de notificaciones -->
+            <div id="notifications-dropdown" class="hidden absolute right-0 top-14 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
+                <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-900">Notificaciones</h3>
+                    <button id="btn-mark-all-read" class="hidden text-xs text-primary hover:text-primary-dark font-semibold">
+                        Marcar todas como leídas
+                    </button>
+                </div>
+                <div id="notifications-content" class="max-h-[400px] overflow-y-auto overflow-x-hidden">
+                    <div class="p-6 text-center text-gray-500">
+                        <span class="material-symbols-outlined text-4xl mb-2">notifications_off</span>
+                        <p>No hay notificaciones</p>
+                    </div>
+                </div>
+                <div id="notifications-footer" class="hidden border-t border-gray-200 p-3 text-center">
+                    <a href="/Pacientes/Notificaciones" class="text-sm text-primary hover:text-primary-dark font-semibold">
+                        Ver todas las notificaciones
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2">
+            <div class="bg-white dark:bg-background-dark rounded-xl shadow-sm p-6">
+                <h2 class="text-slate-800 dark:text-slate-200 text-[22px] font-bold leading-tight tracking-[-0.015em] pb-4">Próximas Citas</h2>
+                <div class="flex flex-col gap-4">
+                    @if (Model.ProximasCitas.Any())
+                    {
+                        @foreach (var cita in Model.ProximasCitas)
+                        {
+                            <div class="flex gap-4 bg-slate-100 dark:bg-slate-800/50 p-4 rounded-lg justify-between items-center">
+                                <div class="flex items-center gap-4">
+                                    <div class="text-slate-800 dark:text-slate-200 flex items-center justify-center rounded-lg bg-primary/20 shrink-0 size-12">
+                                        <span class="material-symbols-outlined">watch</span>
+                                    </div>
+                                    <div class="flex flex-1 flex-col justify-center">
+                                        <p class="text-slate-800 dark:text-slate-200 text-base font-medium leading-normal">Dr. @(cita.Doctor?.nombre ?? "Doctor") @(cita.Doctor?.apellido ?? "")</p>
+                                        <p class="text-slate-500 dark:text-slate-400 text-sm font-normal leading-normal">@(cita.Doctor?.Especialidad?.nombre ?? "Medicina General")</p>
+                                        <p class="text-slate-500 dark:text-slate-400 text-sm font-normal leading-normal">@cita.fecha.ToString("dddd, dd 'de' MMMM", cultura) - @cita.hora.ToString(@"hh\:mm")</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="reagendarCita(@cita.id)" class="text-sm font-medium text-primary hover:underline">Reprogramar</button>
+                                    <button onclick="cancelarCita(@cita.id)" class="text-sm font-medium text-red-500 hover:underline">Cancelar</button>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center py-8">
+                            <span class="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600">event_busy</span>
+                            <p class="mt-2 text-slate-500 dark:text-slate-400">No tienes citas programadas.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+            
+            <div class="bg-white dark:bg-background-dark rounded-xl shadow-sm p-6 mt-8">
+                <h2 class="text-slate-800 dark:text-slate-200 text-[22px] font-bold leading-tight tracking-[-0.015em] pb-4">Citas Pasadas</h2>
+                <div class="flex flex-col gap-4">
+                    @if (Model.CitasPasadas.Any())
+                    {
+                        @foreach (var cita in Model.CitasPasadas.Take(3))
+                        {
+                            <div class="flex gap-4 bg-slate-100 dark:bg-slate-800/50 p-4 rounded-lg justify-between items-center opacity-70">
+                                <div class="flex items-center gap-4">
+                                    <div class="text-slate-800 dark:text-slate-200 flex items-center justify-center rounded-lg bg-slate-200 dark:bg-slate-700 shrink-0 size-12">
+                                        <span class="material-symbols-outlined">event_available</span>
+                                    </div>
+                                    <div class="flex flex-1 flex-col justify-center">
+                                        <p class="text-slate-800 dark:text-slate-200 text-base font-medium leading-normal">Dr. @(cita.Doctor?.nombre ?? "Doctor") @(cita.Doctor?.apellido ?? "")</p>
+                                        <p class="text-slate-500 dark:text-slate-400 text-sm font-normal leading-normal">@(cita.Doctor?.Especialidad?.nombre ?? "Consulta General")</p>
+                                        <p class="text-slate-500 dark:text-slate-400 text-sm font-normal leading-normal">@cita.fecha.ToString("dd 'de' MMMM, yyyy", cultura) - @cita.hora.ToString(@"hh\:mm")</p>
+                                    </div>
+                                </div>
+                                <div class="shrink-0">
+                                    <button class="text-sm font-medium text-primary hover:underline">Ver Detalles</button>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center py-8">
+                            <span class="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600">history</span>
+                            <p class="mt-2 text-slate-500 dark:text-slate-400">No tienes citas pasadas.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex flex-col gap-8">
+            <div class="bg-white dark:bg-background-dark rounded-xl shadow-sm p-6">
+                <h3 class="text-slate-800 dark:text-slate-200 text-lg font-bold pb-4">Perfil</h3>
+                <div class="flex items-center gap-4">
+                    <div class="bg-slate-300 dark:bg-slate-600 rounded-full size-16 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-2xl text-slate-600 dark:text-slate-300">person</span>
+                    </div>
+                    <div>
+                        <p class="text-slate-800 dark:text-slate-200 text-base font-medium">@Model.Paciente.nombre @Model.Paciente.apellido</p>
+                        <a class="text-sm font-medium text-primary hover:underline" href="@Url.Action("Perfil", "Pacientes")">Gestionar Perfil</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white dark:bg-background-dark rounded-xl shadow-sm p-6">
+                <h3 class="text-slate-800 dark:text-slate-200 text-lg font-bold pb-4">Enlaces Rápidos</h3>
+                <div class="flex flex-col gap-3">
+                    <a class="flex items-center gap-3 text-slate-800 dark:text-slate-200 hover:text-primary" href="@Url.Action("Historial", "Citas")">
+                        <span class="material-symbols-outlined text-primary/80">medical_information</span>
+                        <span class="text-sm font-medium">Ver Registros Médicos</span>
+                    </a>
+                    <a class="flex items-center gap-3 text-slate-800 dark:text-slate-200 hover:text-primary" href="@Url.Action("MisCitas", "Citas")">
+                        <span class="material-symbols-outlined text-primary/80">event_note</span>
+                        <span class="text-sm font-medium">Todas Mis Citas</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+async function reagendarCita(citaId) {
+    const confirmado = await showAppConfirm({
+        title: 'Reprogramar cita',
+        text: '¿Estás seguro de que quieres reprogramar esta cita?',
+        icon: 'question',
+        confirmButtonText: 'Sí, reprogramar'
+    });
+
+    if (!confirmado) {
+        return;
+    }
+    
+    fetch(`/Pacientes/ReagendarCita/${citaId}`, {
+        method: 'POST',
+        headers: {
+            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (data.redirectUrl) {
+                window.location.href = data.redirectUrl;
+            } else {
+                showNotification('Cita lista para reprogramar', 'success');
+                setTimeout(() => location.reload(), 1000);
+            }
+        } else {
+            showNotification(data.message || 'Error al reprogramar la cita', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Error al reprogramar la cita', 'error');
+    });
+}
+
+async function cancelarCita(citaId) {
+    const motivo = await showAppPrompt({
+        title: 'Cancelar cita',
+        text: '¿Por qué razón cancelas la cita? (opcional)',
+        icon: 'warning',
+        inputLabel: 'Motivo de cancelación (opcional)',
+        inputPlaceholder: 'Escribe el motivo',
+        confirmButtonText: 'Cancelar cita'
+    });
+
+    if (motivo === null) return; // Usuario canceló el prompt
+    
+    fetch(`/Pacientes/CancelarCita/${citaId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+        },
+        body: JSON.stringify({ Motivo: motivo })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Cita cancelada correctamente', 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showNotification(data.message || 'Error al cancelar la cita', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Error al cancelar la cita', 'error');
+    });
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm ${
+        type === 'success' ? 'bg-green-500 text-white' :
+        type === 'error' ? 'bg-red-500 text-white' :
+        'bg-blue-500 text-white'
+    }`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// --- NOTIFICACIONES ---
+const btnNotifications = document.getElementById('btn-notifications');
+const notificationsDropdown = document.getElementById('notifications-dropdown');
+const notificationsContent = document.getElementById('notifications-content');
+const notificationBadge = document.getElementById('notification-badge');
+
+btnNotifications.addEventListener('click', function(e) {
+    e.stopPropagation();
+    notificationsDropdown.classList.toggle('hidden');
+    if (!notificationsDropdown.classList.contains('hidden')) {
+        cargarNotificaciones();
+    }
+});
+
+document.addEventListener('click', function(e) {
+    if (!btnNotifications.contains(e.target) && !notificationsDropdown.contains(e.target)) {
+        notificationsDropdown.classList.add('hidden');
+    }
+});
+
+async function cargarNotificaciones() {
+    try {
+        const response = await fetch('/Pacientes/ObtenerNotificaciones');
+        const data = await response.json();
+        
+        if (!data.success) {
+            notificationsContent.innerHTML = '<div class="p-4 text-center text-red-500">Error al cargar notificaciones</div>';
+            return;
+        }
+        
+        const notificaciones = data.notificaciones;
+        const totalNoLeidas = data.totalNoLeidas;
+        const btnMarkAllRead = document.getElementById('btn-mark-all-read');
+        const notificationsFooter = document.getElementById('notifications-footer');
+        
+        if (totalNoLeidas > 0) {
+            notificationBadge.classList.remove('hidden');
+            btnMarkAllRead.classList.remove('hidden');
+        } else {
+            notificationBadge.classList.add('hidden');
+            btnMarkAllRead.classList.add('hidden');
+        }
+        
+        if (notificaciones.length === 0) {
+            notificationsContent.innerHTML = `
+                <div class="p-6 text-center text-gray-500">
+                    <span class="material-symbols-outlined text-4xl mb-2">notifications_off</span>
+                    <p>No hay notificaciones</p>
+                </div>
+            `;
+            notificationsFooter.classList.add('hidden');
+        } else {
+            const notificacionesLimitadas = notificaciones.slice(0, 6);
+            let html = '';
+            
+            notificacionesLimitadas.forEach(notif => {
+                const leidaClass = notif.leida ? 'bg-white' : 'bg-blue-50';
+                html += `
+                    <div class="${leidaClass} p-4 border-b border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors" onclick="marcarComoLeida(${notif.id})">
+                        <div class="flex items-start gap-3">
+                            <div class="flex-shrink-0 mt-1">
+                                <span class="material-symbols-outlined text-primary">notifications_active</span>
+                            </div>
+                            <div class="flex-1 min-w-0 overflow-hidden">
+                                <p class="text-sm font-semibold text-gray-900 truncate">${notif.asunto}</p>
+                                <p class="text-xs text-gray-600 mt-1 line-clamp-2">${notif.mensaje}</p>
+                                <p class="text-xs text-gray-400 mt-1">${notif.tiempoTranscurrido}</p>
+                            </div>
+                            ${!notif.leida ? '<div class="flex-shrink-0"><span class="w-2 h-2 bg-blue-500 rounded-full block"></span></div>' : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            notificationsContent.innerHTML = html;
+            
+            if (notificaciones.length > 6) {
+                notificationsFooter.classList.remove('hidden');
+            } else {
+                notificationsFooter.classList.add('hidden');
+            }
+        }
+    } catch (error) {
+        console.error('Error al cargar notificaciones:', error);
+        notificationsContent.innerHTML = '<div class="p-4 text-center text-red-500">Error al cargar notificaciones</div>';
+    }
+}
+
+async function marcarComoLeida(notificacionId) {
+    try {
+        const response = await fetch('/Pacientes/MarcarNotificacionLeida', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(notificacionId)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            cargarNotificaciones();
+        }
+    } catch (error) {
+        console.error('Error al marcar notificación como leída:', error);
+    }
+}
+
+async function marcarTodasLeidas() {
+    try {
+        const response = await fetch('/Pacientes/MarcarTodasLeidas', {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            cargarNotificaciones();
+        }
+    } catch (error) {
+        console.error('Error al marcar todas como leídas:', error);
+    }
+}
+
+document.getElementById('btn-mark-all-read').addEventListener('click', function(e) {
+    e.stopPropagation();
+    marcarTodasLeidas();
+});
+
+async function cargarConteoNotificaciones() {
+    try {
+        const response = await fetch('/Pacientes/ObtenerNotificaciones');
+        const data = await response.json();
+        
+        if (data.success && data.totalNoLeidas > 0) {
+            notificationBadge.classList.remove('hidden');
+        }
+    } catch (error) {
+        console.error('Error al cargar conteo de notificaciones:', error);
+    }
+}
+
+cargarConteoNotificaciones();
+setInterval(cargarConteoNotificaciones, 30000);
+</script>
+
+<style>
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+</style>

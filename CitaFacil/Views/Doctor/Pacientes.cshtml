@@ -1,0 +1,192 @@
+@model CitaFacil.ViewModels.DoctorPatientsViewModel
+@using System.Globalization
+
+@{
+    Layout = "_DoctorLayout";
+    ViewData["Title"] = "Mis pacientes";
+
+    var cultura = CultureInfo.GetCultureInfo("es-MX");
+    var busquedaActual = Model.Busqueda ?? string.Empty;
+    var estadoFiltro = (Model.EstadoFiltro ?? "TODOS").ToUpperInvariant();
+    var paginaActual = Model.PaginaActual;
+    var totalPaginas = Model.TotalPaginas;
+    var paginaAnterior = paginaActual > 1 ? paginaActual - 1 : 1;
+    var paginaSiguiente = paginaActual < totalPaginas ? paginaActual + 1 : totalPaginas;
+    var tieneAnterior = paginaActual > 1;
+    var tieneSiguiente = paginaActual < totalPaginas;
+
+    string ConstruirUrlEstado(string estado) => Url.Action("Pacientes", new { estado, busqueda = busquedaActual, pagina = 1 }) ?? "#";
+
+    string FormatearFecha(DateTime? fecha) => fecha?.ToString("dd MMM yyyy - HH:mm", cultura) ?? "Sin agendar";
+
+    string ObtenerClaseEstado(string codigo) => codigo switch
+    {
+        "CONFIRMADA" => "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
+        "PENDIENTE" => "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
+        "REPROGRAMADA" => "bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300",
+        "CANCELADA" => "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300",
+        "COMPLETADA" => "bg-slate-200 text-slate-700 dark:bg-slate-800/60 dark:text-slate-300",
+        _ => "bg-slate-100 text-slate-600 dark:bg-slate-800/40 dark:text-slate-300"
+    };
+}
+
+<div class="space-y-10">
+    <div class="flex flex-wrap items-start justify-between gap-6">
+        <div class="space-y-2">
+            <p class="text-3xl font-bold tracking-[-0.03em] text-slate-900 dark:text-white">Pacientes atendidos</p>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Administra el seguimiento de tus pacientes y consulta rápidamente sus próximas citas.</p>
+        </div>
+        <div class="flex flex-wrap gap-3">
+            <a asp-action="Calendario" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-300 dark:hover:border-primary dark:hover:text-primary">
+                <span class="material-symbols-outlined text-sm">calendar_month</span>
+                Ver calendario
+            </a>
+            <a asp-action="Index" class="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-dark">
+                <span class="material-symbols-outlined text-sm">dashboard</span>
+                Citas de hoy
+            </a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900/60">
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Pacientes totales</p>
+            <p class="mt-2 text-3xl font-bold text-slate-900 dark:text-white">@Model.TotalPacientes</p>
+        </div>
+        <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm dark:border-emerald-800/50 dark:bg-emerald-900/20">
+            <p class="text-xs font-semibold uppercase tracking-wide text-emerald-600">Próxima cita confirmada</p>
+            <p class="mt-2 text-3xl font-bold text-emerald-700 dark:text-emerald-300">@Model.PacientesConfirmados</p>
+        </div>
+        <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm dark:border-amber-800/50 dark:bg-amber-900/20">
+            <p class="text-xs font-semibold uppercase tracking-wide text-amber-600">Pendientes de confirmar</p>
+            <p class="mt-2 text-3xl font-bold text-amber-700 dark:text-amber-300">@Model.PacientesPendientes</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900/60">
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Sin seguimiento programado</p>
+            <p class="mt-2 text-3xl font-bold text-slate-900 dark:text-white">@Model.PacientesSinSeguimiento</p>
+        </div>
+    </div>
+
+    <section class="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/60">
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div class="flex-1">
+                <form method="get" class="flex min-w-40 max-w-xl items-center rounded-xl border border-slate-200 bg-background-light px-4 py-2 dark:border-slate-700 dark:bg-slate-900">
+                    <span class="material-symbols-outlined me-3 text-slate-400">search</span>
+                    <input type="text" name="busqueda" value="@busquedaActual" class="w-full border-0 bg-transparent text-sm text-slate-600 outline-none placeholder:text-slate-400 dark:text-slate-200 dark:placeholder:text-slate-500" placeholder="Buscar por nombre, correo o ID..." aria-label="Buscar pacientes" />
+                    <input type="hidden" name="pagina" value="1" />
+                    @if (!string.IsNullOrWhiteSpace(estadoFiltro) && estadoFiltro != "TODOS")
+                    {
+                        <input type="hidden" name="estado" value="@estadoFiltro" />
+                    }
+                </form>
+            </div>
+            <div class="flex items-center gap-2 overflow-x-auto">
+                <a href="@ConstruirUrlEstado("TODOS")" class="inline-flex h-10 items-center gap-2 rounded-lg px-3 text-xs font-semibold @(estadoFiltro == "TODOS" ? "bg-primary/15 text-primary" : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800/60 dark:text-slate-200 dark:hover:bg-slate-800")">
+                    <span class="material-symbols-outlined text-sm">group</span>
+                    Todos
+                </a>
+                <a href="@ConstruirUrlEstado("CONFIRMADA")" class="inline-flex h-10 items-center gap-2 rounded-lg px-3 text-xs font-semibold @(estadoFiltro == "CONFIRMADA" ? "bg-primary/15 text-primary" : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800/60 dark:text-slate-200 dark:hover:bg-slate-800")">
+                    Confirmados (@Model.PacientesConfirmados)
+                </a>
+                <a href="@ConstruirUrlEstado("PENDIENTE")" class="inline-flex h-10 items-center gap-2 rounded-lg px-3 text-xs font-semibold @(estadoFiltro == "PENDIENTE" ? "bg-primary/15 text-primary" : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800/60 dark:text-slate-200 dark:hover:bg-slate-800")">
+                    Pendientes (@Model.PacientesPendientes)
+                </a>
+                <a href="@ConstruirUrlEstado("SIN_SEGUIMIENTO")" class="inline-flex h-10 items-center gap-2 rounded-lg px-3 text-xs font-semibold @(estadoFiltro == "SIN_SEGUIMIENTO" ? "bg-primary/15 text-primary" : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800/60 dark:text-slate-200 dark:hover:bg-slate-800")">
+                    Sin seguimiento (@Model.PacientesSinSeguimiento)
+                </a>
+            </div>
+        </div>
+
+        @if (!Model.Pacientes.Any())
+        {
+            <div class="flex flex-col items-center gap-4 py-16 text-center">
+                <span class="material-symbols-outlined text-5xl text-slate-300 dark:text-slate-600">person_off</span>
+                <div class="space-y-1">
+                    <p class="text-base font-semibold text-slate-700 dark:text-slate-200">Aún no se han registrado pacientes</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Cuando atiendas a tus primeros pacientes, aparecerán en esta lista para que puedas darles seguimiento.</p>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="overflow-x-auto">
+                <table class="min-w-full table-auto divide-y divide-slate-200 text-sm dark:divide-slate-800">
+                    <thead class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                        <tr>
+                            <th class="py-3 pe-4 ps-2 text-left">Paciente</th>
+                            <th class="py-3 px-4 text-left">Contacto</th>
+                            <th class="py-3 px-4 text-left">Próxima cita</th>
+                            <th class="py-3 px-4 text-left">Estado</th>
+                            <th class="py-3 ps-4 pe-2 text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+                        @foreach (var paciente in Model.Pacientes)
+                        {
+                            var fecha = FormatearFecha(paciente.ProximaCita);
+                            var estadoClase = ObtenerClaseEstado(paciente.ProximaCitaEstadoCodigo);
+                            var estadoTexto = string.IsNullOrWhiteSpace(paciente.ProximaCitaEstado) ? "Sin cita próxima" : paciente.ProximaCitaEstado;
+                            var correo = string.IsNullOrWhiteSpace(paciente.Correo) ? "Sin correo registrado" : paciente.Correo;
+                            var telefono = string.IsNullOrWhiteSpace(paciente.Telefono) ? "Sin celular" : paciente.Telefono;
+
+                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                                <td class="py-4 pe-4 ps-2">
+                                    <div class="flex items-center gap-3">
+                                        <div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/15 text-sm font-semibold uppercase text-primary">
+                                            @paciente.AvatarIniciales
+                                        </div>
+                                        <div class="space-y-1">
+                                            <p class="font-semibold text-slate-900 dark:text-slate-100">@paciente.NombreCompleto</p>
+                                            <p class="text-xs text-slate-400">ID paciente: @paciente.PacienteId</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-4 align-top">
+                                    <div class="space-y-1 text-xs text-slate-500 dark:text-slate-300">
+                                        <div class="flex items-center gap-2">
+                                            <span class="material-symbols-outlined text-base text-slate-400">mail</span>
+                                            <span class="truncate">@correo</span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="material-symbols-outlined text-base text-slate-400">call</span>
+                                            <span class="truncate">@telefono</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-4 align-top text-slate-600 dark:text-slate-300">@fecha</td>
+                                <td class="py-4 px-4 align-top">
+                                    <span class=$"inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold {estadoClase}">
+                                        <span class="material-symbols-outlined text-sm">radio_button_unchecked</span>
+                                        @estadoTexto
+                                    </span>
+                                </td>
+                                <td class="py-4 ps-4 pe-2 text-right align-top">
+                                    <div class="flex justify-end gap-2">
+                                        <a asp-action="Expediente" asp-route-id="@paciente.PacienteId" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-300 dark:hover:border-primary dark:hover:text-primary">
+                                            <span class="material-symbols-outlined text-sm">folder_open</span>
+                                            Expediente
+                                        </a>
+                                        <a asp-action="Contacto" asp-route-id="@paciente.PacienteId" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-300 dark:hover:border-primary dark:hover:text-primary">
+                                            <span class="material-symbols-outlined text-sm">chat</span>
+                                            Contacto
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-4 text-xs text-slate-500 dark:text-slate-400">
+                <p>Mostrando @Model.Pacientes.Count de @Model.TotalPacientes paciente@(Model.TotalPacientes == 1 ? string.Empty : "s").</p>
+                <div class="flex items-center gap-2">
+                    <span class="hidden text-slate-400 sm:inline">Página @paginaActual de @totalPaginas</span>
+                    <a class="inline-flex items-center justify-center rounded-lg border border-slate-200 px-3 py-1.5 font-semibold @(tieneAnterior ? "text-slate-600 hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-300 dark:hover:border-primary dark:hover:text-primary" : "text-slate-400 cursor-not-allowed dark:border-slate-800 dark:text-slate-500")" asp-action="Pacientes" asp-route-pagina="@paginaAnterior" asp-route-busqueda="@busquedaActual" asp-route-estado="@estadoFiltro" aria-disabled="@(!tieneAnterior)" tabindex="@(tieneAnterior ? "0" : "-1")">Anterior</a>
+                    <a class="inline-flex items-center justify-center rounded-lg border border-slate-200 px-3 py-1.5 font-semibold @(tieneSiguiente ? "text-slate-600 hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-300 dark:hover:border-primary dark:hover:text-primary" : "text-slate-400 cursor-not-allowed dark:border-slate-800 dark:text-slate-500")" asp-action="Pacientes" asp-route-pagina="@paginaSiguiente" asp-route-busqueda="@busquedaActual" asp-route-estado="@estadoFiltro" aria-disabled="@(!tieneSiguiente)" tabindex="@(tieneSiguiente ? "0" : "-1")">Siguiente</a>
+                </div>
+            </div>
+        }
+    </section>
+</div>
+

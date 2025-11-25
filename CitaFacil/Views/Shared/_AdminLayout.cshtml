@@ -1,0 +1,201 @@
+﻿<!DOCTYPE html>
+<html class="light" lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Panel de Admin</title>
+
+    <!-- 1. Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <!-- 2. Carga de Fuentes y Iconos -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
+
+    <!-- 3. Carga de nuestro CSS de Admin -->
+    <link rel="stylesheet" href="~/css/admin-style.css" asp-append-version="true" />
+
+    <!-- 4. Configuración de Tailwind (con TUS colores) -->
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#89CFF0",
+                        "primary-dark": "#6abddf",
+                        "secondary": "#f0f4f8",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101c22",
+                        "text-light": "#333333",
+                        "text-dark": "#f0f0f0",
+                        "accent-success": "#28a745",
+                        "accent-error": "#dc3545",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.5rem", "lg": "0.75rem", "xl": "1rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-text-light dark:text-text-dark">
+    <!-- Contenedor principal con la barra lateral -->
+    <div class="flex h-screen">
+        <!-- Barra lateral (Sidebar) -->
+        <aside id="admin-sidebar" class="bg-white dark:bg-zinc-800 shadow-lg flex flex-col flex-shrink-0 fixed lg:static h-full z-50 lg:z-0 transform -translate-x-full lg:translate-x-0 transition-all duration-300 ease-in-out sidebar-expanded">
+            <!-- Toggle Button -->
+            <button id="sidebar-toggle" class="absolute -right-3 top-4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-full w-6 h-6 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 z-10">
+                <span class="material-symbols-outlined text-sm">chevron_left</span>
+            </button>
+            <!-- Logo y Nombre -->
+            <div class="flex items-center justify-center h-20 border-b dark:border-zinc-700">
+                <a asp-controller="Admin" asp-action="Index" class="flex items-center gap-3">
+                    <img src="~/logo_cita.png" alt="CitaFacil Logo" class="w-12 h-12 object-contain flex-shrink-0" />
+                    <span class="text-2xl font-bold text-primary sidebar-text whitespace-nowrap">CitaFacil</span>
+                </a>
+            </div>
+
+            <!-- Información del Usuario (Admin) -->
+            <div class="p-4 border-b dark:border-zinc-700">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-4xl p-2 bg-primary/10 text-primary rounded-full">admin_panel_settings</span>
+                    <div class="flex flex-col sidebar-text">
+                        <span class="text-base font-semibold dark:text-white">@User.Identity?.Name</span>
+                        <span class="text-sm text-zinc-500 dark:text-zinc-400">Administrador</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navegación Principal -->
+            <nav class="flex-grow p-4 space-y-2">
+                <a asp-controller="Admin" asp-action="Index" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-secondary dark:hover:bg-zinc-700 transition-colors duration-200">
+                    <span class="material-symbols-outlined">dashboard</span>
+                    <span class="sidebar-text">Dashboard</span>
+                </a>
+                <a asp-controller="Usuarios" asp-action="Index" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-secondary dark:hover:bg-zinc-700 transition-colors duration-200">
+                    <span class="material-symbols-outlined">group</span>
+                    <span class="sidebar-text">Usuarios</span>
+                </a>
+                <a asp-controller="Especialidades" asp-action="Index" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-secondary dark:hover:bg-zinc-700 transition-colors duration-200">
+                    <span class="material-symbols-outlined">medical_information</span>
+                    <span class="sidebar-text">Especialidades</span>
+                </a>
+                <a asp-controller="Admin" asp-action="Backups" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-secondary dark:hover:bg-zinc-700 transition-colors duration-200">
+                    <span class="material-symbols-outlined">database</span>
+                    <span class="sidebar-text">Respaldos</span>
+                </a>
+                <!-- Agrega aquí más enlaces de admin (Doctores, Pacientes, etc.) -->
+            </nav>
+
+            <!-- Botón de Logout (al final) -->
+            <div class="p-4 border-t dark:border-zinc-700">
+                <form asp-controller="Account" asp-action="Logout" method="post">
+                    <button type="submit" class="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-lg text-accent-error hover:bg-accent-error/10 transition-colors duration-200">
+                        <span class="material-symbols-outlined">logout</span>
+                        <span class="sidebar-text">Cerrar Sesión</span>
+                    </button>
+                </form>
+            </div>
+        </aside>
+
+        <!-- Contenedor Principal (derecha) -->
+        <div id="main-content" class="flex-1 flex flex-col h-screen overflow-y-auto transition-all duration-300 ease-in-out main-content-expanded">
+            <!-- Barra superior (Solo para móvil) -->
+            <header class="lg:hidden flex items-center justify-between h-20 bg-white dark:bg-zinc-800 shadow px-4">
+                <a asp-controller="Admin" asp-action="Index" class="text-2xl font-bold text-primary">CitaFacil</a>
+                <button id="menu-toggle-btn" class="p-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-secondary dark:hover:bg-zinc-700">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+            </header>
+
+            <!-- Contenido de la Página -->
+            <main class="flex-1 p-6 pt-8 lg:p-10">
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div id="toast-success" class="flex items-center w-full max-w-xl p-4 mb-6 text-green-800 bg-green-100 rounded-lg shadow-md dark:text-green-300 dark:bg-green-900" role="alert">
+                        <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-500 bg-green-200 rounded-lg dark:bg-green-800 dark:text-green-200">
+                            <span class="material-symbols-outlined">check_circle</span>
+                        </div>
+                        <div class="ms-3 text-sm font-medium">@TempData["SuccessMessage"]</div>
+                        <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-green-100 text-green-500 rounded-lg focus:ring-2 focus:ring-green-400 p-1.5 hover:bg-green-200 inline-flex items-center justify-center h-8 w-8 dark:bg-green-900 dark:text-green-400 dark:hover:bg-green-800" onclick="document.getElementById('toast-success').style.display='none'">
+                            <span class="material-symbols-outlined">close</span>
+                        </button>
+                    </div>
+                }
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div id="toast-error" class="flex items-center w-full max-w-xl p-4 mb-6 text-accent-error bg-accent-error/10 rounded-lg shadow-md dark:text-red-300 dark:bg-red-900" role="alert">
+                        <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-red-500 bg-red-200 rounded-lg dark:bg-red-800 dark:text-red-200">
+                            <span class="material-symbols-outlined">error</span>
+                        </div>
+                        <div class="ms-3 text-sm font-medium">@TempData["ErrorMessage"]</div>
+                        <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-red-100 text-red-500 rounded-lg focus:ring-2 focus:ring-red-400 p-1.5 hover:bg-red-200 inline-flex items-center justify-center h-8 w-8 dark:bg-red-900 dark:text-red-400 dark:hover:bg-red-800" onclick="document.getElementById('toast-error').style.display='none'">
+                            <span class="material-symbols-outlined">close</span>
+                        </button>
+                    </div>
+                }
+                <!-- ======== FIN DEL BLOQUE DE NOTIFICACIÓN ======== -->
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <!-- Overlay para menú móvil -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"></div>
+
+    <script src="~/js/admin-layout.js" asp-append-version="true"></script>
+    
+    <!-- Sidebar Toggle Script -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('admin-sidebar');
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const mainContent = document.getElementById('main-content');
+            const toggleIcon = sidebarToggle.querySelector('.material-symbols-outlined');
+            
+            // Recuperar estado del localStorage
+            const isCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
+            if (isCollapsed) {
+                toggleSidebar();
+            }
+            
+            sidebarToggle.addEventListener('click', function() {
+                toggleSidebar();
+            });
+            
+            function toggleSidebar() {
+                const isCurrentlyExpanded = sidebar.classList.contains('sidebar-expanded');
+                
+                if (isCurrentlyExpanded) {
+                    // Colapsar
+                    sidebar.classList.remove('sidebar-expanded');
+                    sidebar.classList.add('sidebar-collapsed');
+                    mainContent.classList.remove('main-content-expanded');
+                    mainContent.classList.add('main-content-collapsed');
+                    toggleIcon.textContent = 'chevron_right';
+                    localStorage.setItem('sidebar-collapsed', 'true');
+                } else {
+                    // Expandir
+                    sidebar.classList.remove('sidebar-collapsed');
+                    sidebar.classList.add('sidebar-expanded');
+                    mainContent.classList.remove('main-content-collapsed');
+                    mainContent.classList.add('main-content-expanded');
+                    toggleIcon.textContent = 'chevron_left';
+                    localStorage.setItem('sidebar-collapsed', 'false');
+                }
+            }
+        });
+    </script>
+    
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
+

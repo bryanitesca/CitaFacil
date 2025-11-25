@@ -1,0 +1,300 @@
+/* TailwindCSS Custom Configuration for CitaFacil */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Custom CSS Variables based on Stitch designs */
+:root {
+  --primary-color: #3b82f6;
+  --primary-dark: #1d4ed8;
+  --primary-light: #60a5fa;
+  --secondary-color: #64748b;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --error-color: #ef4444;
+  --background-light: #f8fafc;
+  --background-dark: #0f172a;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --border-color: #e2e8f0;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+/* Base styles */
+body {
+  font-family: 'Inter', 'Noto Sans', sans-serif;
+  background-color: var(--background-light);
+  color: var(--text-primary);
+}
+
+/* Custom component classes */
+.btn-primary {
+  @apply bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+}
+
+.btn-secondary {
+  @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+}
+
+.btn-success {
+  @apply bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+}
+
+.btn-danger {
+  @apply bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+}
+
+.btn-warning {
+  @apply bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+}
+
+.card {
+  @apply bg-white rounded-lg shadow-md border border-gray-200;
+}
+
+.card-header {
+  @apply px-6 py-4 border-b border-gray-200 bg-gray-50 rounded-t-lg;
+}
+
+.card-body {
+  @apply p-6;
+}
+
+.form-input {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+}
+
+.form-select {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white;
+}
+
+.form-label {
+  @apply block text-sm font-medium text-gray-700 mb-1;
+}
+
+.form-error {
+  @apply text-red-500 text-sm mt-1;
+}
+
+.badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.badge-success {
+  @apply bg-green-100 text-green-800;
+}
+
+.badge-warning {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+.badge-danger {
+  @apply bg-red-100 text-red-800;
+}
+
+.badge-info {
+  @apply bg-blue-100 text-blue-800;
+}
+
+.badge-secondary {
+  @apply bg-gray-100 text-gray-800;
+}
+
+/* Modal styles */
+.modal-overlay {
+  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
+}
+
+.modal-content {
+  @apply bg-white rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto;
+}
+
+.modal-header {
+  @apply px-6 py-4 border-b border-gray-200 flex items-center justify-between;
+}
+
+.modal-body {
+  @apply p-6;
+}
+
+.modal-footer {
+  @apply px-6 py-4 border-t border-gray-200 flex justify-end space-x-2;
+}
+
+/* Navigation styles */
+.nav-link {
+  @apply px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200;
+}
+
+.nav-link-active {
+  @apply bg-blue-100 text-blue-700;
+}
+
+.nav-link-inactive {
+  @apply text-gray-600 hover:text-gray-900 hover:bg-gray-50;
+}
+
+/* Table styles */
+.table {
+  @apply min-w-full divide-y divide-gray-200;
+}
+
+.table-header {
+  @apply bg-gray-50;
+}
+
+.table-header-cell {
+  @apply px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider;
+}
+
+.table-row {
+  @apply bg-white hover:bg-gray-50 transition-colors duration-150;
+}
+
+.table-cell {
+  @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900;
+}
+
+/* Calendar styles */
+.calendar-grid {
+  @apply grid grid-cols-7 gap-px bg-gray-200 rounded-lg overflow-hidden;
+}
+
+.calendar-day {
+  @apply bg-white p-2 min-h-[80px] hover:bg-gray-50 transition-colors duration-150 cursor-pointer;
+}
+
+.calendar-day-current {
+  @apply bg-blue-50 border-2 border-blue-200;
+}
+
+.calendar-day-other-month {
+  @apply bg-gray-100 text-gray-400;
+}
+
+.calendar-event {
+  @apply text-xs p-1 mb-1 rounded truncate;
+}
+
+.calendar-event-appointment {
+  @apply bg-blue-100 text-blue-800;
+}
+
+.calendar-event-blocked {
+  @apply bg-red-100 text-red-800;
+}
+
+/* Avatar styles */
+.avatar {
+  @apply inline-flex items-center justify-center rounded-full bg-gray-300 text-gray-700 font-medium;
+}
+
+.avatar-sm {
+  @apply w-8 h-8 text-sm;
+}
+
+.avatar-md {
+  @apply w-10 h-10 text-base;
+}
+
+.avatar-lg {
+  @apply w-12 h-12 text-lg;
+}
+
+.avatar-xl {
+  @apply w-16 h-16 text-xl;
+}
+
+/* Status indicators */
+.status-indicator {
+  @apply inline-block w-2 h-2 rounded-full;
+}
+
+.status-online {
+  @apply bg-green-400;
+}
+
+.status-busy {
+  @apply bg-red-400;
+}
+
+.status-away {
+  @apply bg-yellow-400;
+}
+
+.status-offline {
+  @apply bg-gray-400;
+}
+
+/* Animation utilities */
+.fade-in {
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { transform: translateY(-10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Responsive utilities */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Sidebar Expand/Collapse Styles */
+.sidebar-expanded {
+  width: 256px;
+  position: relative;
+}
+
+.sidebar-collapsed {
+  width: 80px;
+  position: relative;
+}
+
+.sidebar-collapsed .sidebar-text {
+  display: none;
+}
+
+.main-content-expanded {
+  margin-left: 0;
+}
+
+.main-content-collapsed {
+  margin-left: 0;
+}
+
+#sidebar-toggle {
+  position: absolute;
+}
+
+@media (min-width: 1024px) {
+  .sidebar-expanded {
+    width: 256px;
+  }
+  
+  .sidebar-collapsed {
+    width: 80px;
+  }
+}

@@ -1,0 +1,51 @@
+﻿@{
+    Layout = "_LoginLayout";
+    ViewData["Title"] = "Iniciar sesión";
+}
+
+<div class="flex flex-col items-center justify-center mb-8">
+    <svg class="w-16 h-16 text-primary" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path clip-rule="evenodd" d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z" fill-rule="evenodd"></path>
+    </svg>
+    <p class="text-3xl font-bold leading-tight tracking-tighter mt-4 text-center">CitaFácil</p>
+</div>
+<div class="flex flex-wrap justify-between gap-3 p-4">
+    <div class="flex w-full flex-col gap-2">
+        <p class="text-4xl font-black leading-tight tracking-[-0.033em]">¡Bienvenido de nuevo!</p>
+        <p class="text-base font-normal leading-normal">Inicia sesión para acceder a tu cuenta.</p>
+    </div>
+</div>
+<div class="flex max-w-[480px] flex-col gap-4 px-4 py-3">
+    <label class="flex flex-col min-w-40 flex-1">
+        <p class="text-base font-medium leading-normal pb-2">Correo/Usuario</p>
+        <input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg focus:outline-0 focus:ring-0 border-none bg-zinc-100 dark:bg-zinc-800 focus:border-none h-14 placeholder:text-zinc-500 dark:placeholder:text-zinc-400 p-4 text-base font-normal leading-normal" placeholder="Ingresa tu correo o usuario" value="" />
+    </label>
+    <label class="flex flex-col min-w-40 flex-1">
+        <p class="text-base font-medium leading-normal pb-2">Contraseña</p>
+        <div class="flex w-full flex-1 items-stretch rounded-lg">
+            <input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg focus:outline-0 focus:ring-0 border-none bg-zinc-100 dark:bg-zinc-800 focus:border-none h-14 placeholder:text-zinc-500 dark:placeholder:text-zinc-400 p-4 rounded-r-none border-r-0 pr-2 text-base font-normal leading-normal" placeholder="Ingresa tu contraseña" type="password" value="" />
+            <div class="flex border-none bg-zinc-100 dark:bg-zinc-800 items-center justify-center pr-4 rounded-r-lg border-l-0 text-zinc-500 dark:text-zinc-400">
+                <span class="material-symbols-outlined cursor-pointer">visibility</span>
+            </div>
+        </div>
+    </label>
+</div>
+<div class="flex items-center gap-4 bg-transparent px-4 min-h-14 justify-between">
+    <div class="flex items-center gap-2">
+        <div class="flex size-7 items-center justify-center">
+            <input class="h-5 w-5 rounded border-zinc-300 dark:border-zinc-600 border-2 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0 focus:border-zinc-300 dark:focus:border-zinc-600 focus:outline-none" type="checkbox" />
+        </div>
+        <p class="text-sm font-normal leading-normal flex-1 truncate">Recuérdame</p>
+    </div>
+    <div class="shrink-0"><button class="text-sm font-medium leading-normal text-primary">¿Olvidaste tu contraseña?</button></div>
+</div>
+<div class="flex px-4 py-3">
+    <button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-14 px-5 flex-1 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em]">
+        <span class="truncate">Iniciar sesión</span>
+    </button>
+</div>
+<div class="text-center mt-6 px-4">
+    <p class="text-xs text-zinc-500 dark:text-zinc-400">
+        <a class="hover:underline" href="#">Términos del servicio</a> • <a class="hover:underline" href="#">Política de privacidad</a>
+    </p>
+</div>

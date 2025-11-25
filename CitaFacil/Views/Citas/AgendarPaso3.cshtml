@@ -1,0 +1,163 @@
+@model CitaFacil.ViewModels.ScheduleConfirmationViewModel
+@{
+    Layout = "_PatientLayout";
+    ViewData["Title"] = "Agendar una cita - Paso 3";
+
+    var cultura = System.Globalization.CultureInfo.GetCultureInfo("es-MX");
+    var fechaTexto = Model.Fecha.ToString("dddd d 'de' MMMM", cultura);
+    var horaTexto = DateTime.Today.Add(Model.Hora).ToString("HH:mm");
+    var fechaValor = Model.Fecha.ToString("yyyy-MM-dd");
+    var horaValor = Model.Hora.ToString();
+}
+
+<div class="space-y-10">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="space-y-2">
+            <h1 class="text-4xl font-black tracking-[-0.03em] text-text-light dark:text-text-dark">Confirma los detalles de tu cita</h1>
+            <p class="text-sm text-zinc-500 dark:text-zinc-400">Revisa la información de la cita y agrega un motivo o notas para ayudar a tu doctor a preparar la consulta.</p>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.MensajeEstado))
+    {
+        <div class="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700 dark:border-amber-400/40 dark:bg-amber-400/10 dark:text-amber-200">
+            <span class="material-symbols-outlined text-base">info</span>
+            <span>@Model.MensajeEstado</span>
+        </div>
+    }
+
+    <div class="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+        <section class="space-y-6 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+            <header class="flex flex-wrap items-start justify-between gap-4">
+                <div class="space-y-1">
+                    <p class="text-sm font-semibold text-primary">Cita @(Model.EsVirtual ? "virtual" : "presencial")</p>
+                    <h2 class="text-2xl font-bold text-text-light dark:text-text-dark">@Model.DoctorNombre</h2>
+                    <p class="text-sm text-zinc-500 dark:text-zinc-400">Especialidad en @Model.DoctorEspecialidad</p>
+                </div>
+                <div class="flex flex-col items-end gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                    <span class="inline-flex items-center gap-1">
+                        <span class="material-symbols-outlined text-base">calendar_month</span>
+                        @fechaTexto
+                    </span>
+                    <span class="inline-flex items-center gap-1">
+                        <span class="material-symbols-outlined text-base">schedule</span>
+                        @horaTexto hrs
+                    </span>
+                    @if (!string.IsNullOrWhiteSpace(Model.Ubicacion))
+                    {
+                        <span class="inline-flex items-center gap-1">
+                            <span class="material-symbols-outlined text-base">location_on</span>
+                            @Model.Ubicacion
+                        </span>
+                    }
+                </div>
+            </header>
+
+            <div class="grid gap-4 rounded-xl border border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                <div class="space-y-1">
+                    <p class="text-xs uppercase text-zinc-400">Paciente</p>
+                    <p class="font-semibold text-text-light dark:text-text-dark">@Model.PacienteNombre</p>
+                    @if (!string.IsNullOrWhiteSpace(Model.PacienteCorreo))
+                    {
+                        <p class="flex items-center gap-2 text-xs">
+                            <span class="material-symbols-outlined text-sm">mail</span>
+                            @Model.PacienteCorreo
+                        </p>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Model.PacienteTelefono))
+                    {
+                        <p class="flex items-center gap-2 text-xs">
+                            <span class="material-symbols-outlined text-sm">call</span>
+                            @Model.PacienteTelefono
+                        </p>
+                    }
+                </div>
+            </div>
+
+            <form method="post" asp-action="ConfirmarCita" class="space-y-6">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="EspecialidadId" value="@Model.EspecialidadId" />
+                <input type="hidden" name="DoctorId" value="@Model.DoctorId" />
+                <input type="hidden" name="Fecha" value="@fechaValor" />
+                <input type="hidden" name="Hora" value="@horaValor" />
+                @if (Model.CitaId.HasValue)
+                {
+                    <input type="hidden" name="CitaId" value="@Model.CitaId" />
+                }
+
+                <div>
+                    <label class="flex flex-col gap-2 text-sm text-text-light dark:text-text-dark">
+                        Motivo de la consulta (opcional)
+                        <input name="Motivo" maxlength="500" class="form-input rounded-lg border border-zinc-300 bg-white focus:border-primary focus:ring-primary dark:border-zinc-600 dark:bg-zinc-900" placeholder="Describe brevemente el motivo" />
+                    </label>
+                    <input type="hidden" name="EsVirtual" value="false" />
+                </div>
+
+                <label class="flex flex-col gap-2 text-sm text-text-light dark:text-text-dark">
+                    Notas adicionales (opcional)
+                    <textarea name="Notas" rows="3" maxlength="500" class="form-textarea rounded-lg border border-zinc-300 bg-white focus:border-primary focus:ring-primary dark:border-zinc-600 dark:bg-zinc-900" placeholder="Información relevante para tu doctor"></textarea>
+                </label>
+
+                <div class="flex items-center justify-between gap-4">
+                    <a asp-action="AgendarPaso2"
+                       asp-route-especialidadId="@Model.EspecialidadId"
+                       asp-route-doctorId="@Model.DoctorId"
+                       asp-route-citaId="@Model.CitaId"
+                       class="inline-flex items-center gap-2 rounded-lg border border-zinc-200 px-4 py-2 text-sm font-semibold text-zinc-600 transition hover:border-primary hover:text-primary dark:border-zinc-700 dark:text-zinc-300 dark:hover:border-primary dark:hover:text-primary">
+                        <span class="material-symbols-outlined text-base">arrow_back</span>
+                        Cambiar horario
+                    </a>
+
+                    @if (Model.PuedeConfirmar)
+                    {
+                        <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-dark">
+                            Confirmar cita
+                            <span class="material-symbols-outlined text-base">check_circle</span>
+                        </button>
+                    }
+                    else
+                    {
+                        <span class="inline-flex items-center gap-2 rounded-lg bg-zinc-200 px-5 py-2 text-sm font-semibold text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                            Selecciona otro horario para continuar
+                        </span>
+                    }
+                </div>
+            </form>
+        </section>
+
+        <aside class="space-y-4 rounded-2xl border border-primary/30 bg-primary/5 p-6 text-sm text-primary dark:border-primary/40 dark:bg-primary/10">
+            <h2 class="text-lg font-semibold">Resumen rápido</h2>
+            <ul class="space-y-3">
+                <li class="flex items-center gap-3">
+                    <span class="material-symbols-outlined">event</span>
+                    <div>
+                        <p class="font-semibold text-text-light dark:text-text-dark">Fecha</p>
+                        <p>@fechaTexto</p>
+                    </div>
+                </li>
+                <li class="flex items-center gap-3">
+                    <span class="material-symbols-outlined">schedule</span>
+                    <div>
+                        <p class="font-semibold text-text-light dark:text-text-dark">Hora</p>
+                        <p>@horaTexto hrs</p>
+                    </div>
+                </li>
+                <li class="flex items-center gap-3">
+                    <span class="material-symbols-outlined">medical_services</span>
+                    <div>
+                        <p class="font-semibold text-text-light dark:text-text-dark">Especialidad</p>
+                        <p>@Model.EspecialidadNombre</p>
+                    </div>
+                </li>
+                <li class="flex items-center gap-3">
+                    <span class="material-symbols-outlined">location_on</span>
+                    <div>
+                        <p class="font-semibold text-text-light dark:text-text-dark">Ubicación</p>
+                        <p>@(string.IsNullOrWhiteSpace(Model.Ubicacion) ? "Por confirmar" : Model.Ubicacion)</p>
+                    </div>
+                </li>
+            </ul>
+        </aside>
+    </div>
+</div>
+

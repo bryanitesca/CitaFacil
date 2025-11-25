@@ -1,0 +1,301 @@
+﻿@model CitaFacil.ViewModels.AdminSpecialtiesViewModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Especialidades";
+}
+
+<div class="space-y-8">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="space-y-2">
+            <p class="text-4xl font-black tracking-tight text-text-light dark:text-text-dark">Especialidades médicas</p>
+            <p class="text-zinc-500 dark:text-zinc-400">Gestiona el catálogo de especialidades disponibles para asignar a tu equipo.</p>
+        </div>
+        <a asp-controller="Especialidades" asp-action="Create" class="flex items-center gap-2 px-5 py-3 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors duration-200">
+            <span class="material-symbols-outlined">add</span>
+            Agregar especialidad
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="p-4 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800">
+            <p class="text-sm text-zinc-500 dark:text-zinc-400">Total de especialidades</p>
+            <p class="text-2xl font-bold text-text-light dark:text-text-dark">@Model.TotalEspecialidades</p>
+        </div>
+        <div class="p-4 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800">
+            <p class="text-sm text-zinc-500 dark:text-zinc-400">Especialidades activas</p>
+            <p class="text-2xl font-bold text-text-light dark:text-text-dark">@Model.EspecialidadesActivas</p>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700">
+        <div class="p-6 border-b border-zinc-100 dark:border-zinc-700 flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+            <div class="w-full lg:w-1/2 relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">search</span>
+                <input type="text" placeholder="Buscar especialidad" class="w-full pl-11 pr-4 py-3 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 focus:ring-primary focus:border-primary text-sm" />
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <button class="flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-sm text-zinc-600 dark:text-zinc-300 hover:border-primary">
+                    <span class="material-symbols-outlined text-base">filter_alt</span>
+                    Filtrar
+                </button>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-zinc-100 dark:divide-zinc-700 text-sm">
+                <thead class="bg-zinc-50 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-200 uppercase">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left font-semibold">Especialidad</th>
+                        <th scope="col" class="px-6 py-3 text-left font-semibold">Descripción</th>
+                        <th scope="col" class="px-6 py-3 text-left font-semibold">Doctores</th>
+                        <th scope="col" class="px-6 py-3 text-left font-semibold">Estado</th>
+                        <th scope="col" class="px-6 py-3 text-right font-semibold">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-100 dark:divide-zinc-700">
+                    @if (Model.Especialidades.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="5" class="px-6 py-6 text-center text-zinc-500 dark:text-zinc-300">Aún no has registrado especialidades.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var especialidad in Model.Especialidades)
+                        {
+                            <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-colors">
+                                <td class="px-6 py-4 font-semibold text-text-light dark:text-text-dark">@especialidad.Nombre</td>
+                                <td class="px-6 py-4 text-zinc-600 dark:text-zinc-300">@(string.IsNullOrWhiteSpace(especialidad.Descripcion) ? "Sin descripción" : especialidad.Descripcion)</td>
+                                <td class="px-6 py-4 text-zinc-600 dark:text-zinc-300">@especialidad.DoctoresAsociados</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold @(especialidad.Activa ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")">@(especialidad.Activa ? "Activa" : "Inactiva")</span>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="inline-flex items-center gap-3 text-sm font-medium">
+                                        <button onclick="editarEspecialidad(@especialidad.Id)" class="text-primary hover:underline">Editar</button>
+                                        <span class="text-zinc-300">|</span>
+                                        <button onclick="eliminarEspecialidad(@especialidad.Id)" class="text-accent-error hover:underline">Eliminar</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="flex justify-between items-center px-6 py-4 border-t border-zinc-100 dark:border-zinc-700 text-sm text-zinc-500 dark:text-zinc-300">
+            <span>Mostrando @Model.Especialidades.Count especialidad(es)</span>
+            <div class="flex items-center gap-2">
+                <button class="px-3 py-1 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 hover:border-primary">Anterior</button>
+                <button class="px-3 py-1 rounded-lg border border-primary bg-primary text-white">1</button>
+                <button class="px-3 py-1 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 hover:border-primary">Siguiente</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Crear/Editar Especialidad -->
+<div id="modal-especialidad" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black bg-opacity-50">
+    <div class="flex min-h-screen items-center justify-center p-4">
+        <div class="relative w-full max-w-md rounded-xl bg-white dark:bg-zinc-800 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-700 p-6">
+                <h3 id="modal-title" class="text-xl font-bold text-text-light dark:text-text-dark">Agregar especialidad</h3>
+                <button onclick="cerrarModal()" class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <form id="form-especialidad" class="p-6 space-y-4">
+                <input type="hidden" id="especialidad-id" />
+                
+                <div>
+                    <label class="block text-sm font-semibold text-text-light dark:text-text-dark mb-2">Nombre *</label>
+                    <input type="text" id="especialidad-nombre" required maxlength="100" class="w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 focus:ring-primary focus:border-primary text-text-light dark:text-text-dark" />
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-text-light dark:text-text-dark mb-2">Descripción</label>
+                    <textarea id="especialidad-descripcion" rows="3" maxlength="255" class="w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 focus:ring-primary focus:border-primary text-text-light dark:text-text-dark"></textarea>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-text-light dark:text-text-dark mb-2">Icono (Material Symbols)</label>
+                    <input type="text" id="especialidad-icono" maxlength="120" placeholder="clinical_notes" class="w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 focus:ring-primary focus:border-primary text-text-light dark:text-text-dark" />
+                    <p class="text-xs text-zinc-500 mt-1">Busca iconos en: <a href="https://fonts.google.com/icons" target="_blank" class="text-primary hover:underline">Material Symbols</a></p>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="especialidad-activa" checked class="rounded border-zinc-300 text-primary focus:ring-primary" />
+                    <label for="especialidad-activa" class="text-sm font-semibold text-text-light dark:text-text-dark">Especialidad activa</label>
+                </div>
+            </form>
+            
+            <div class="flex items-center justify-end gap-3 border-t border-zinc-200 dark:border-zinc-700 p-6">
+                <button onclick="cerrarModal()" class="px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700">Cancelar</button>
+                <button onclick="guardarEspecialidad()" class="px-4 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let modoEdicion = false;
+        
+        document.getElementById('btn-crear-especialidad').addEventListener('click', function() {
+            modoEdicion = false;
+            document.getElementById('modal-title').textContent = 'Agregar especialidad';
+            document.getElementById('form-especialidad').reset();
+            document.getElementById('especialidad-id').value = '';
+            document.getElementById('especialidad-activa').checked = true;
+            abrirModal();
+        });
+        
+        function abrirModal() {
+            document.getElementById('modal-especialidad').classList.remove('hidden');
+        }
+        
+        function cerrarModal() {
+            document.getElementById('modal-especialidad').classList.add('hidden');
+        }
+        
+        async function editarEspecialidad(id) {
+            try {
+                const response = await fetch(`/Especialidades/GetDetailsAjax/${id}`);
+                const data = await response.json();
+                
+                if (!data.success) {
+                    await showAppAlert({
+                        icon: 'error',
+                        title: 'No se pudo cargar',
+                        text: data.message || 'Error al cargar especialidad'
+                    });
+                    return;
+                }
+                
+                modoEdicion = true;
+                document.getElementById('modal-title').textContent = 'Editar especialidad';
+                document.getElementById('especialidad-id').value = data.especialidad.id;
+                document.getElementById('especialidad-nombre').value = data.especialidad.nombre;
+                document.getElementById('especialidad-descripcion').value = data.especialidad.descripcion || '';
+                document.getElementById('especialidad-icono').value = data.especialidad.icono || '';
+                document.getElementById('especialidad-activa').checked = data.especialidad.activa;
+                
+                abrirModal();
+            } catch (error) {
+                console.error('Error:', error);
+                await showAppAlert({
+                    icon: 'error',
+                    title: 'Error inesperado',
+                    text: 'Error al cargar especialidad'
+                });
+            }
+        }
+        
+        async function guardarEspecialidad() {
+            const id = document.getElementById('especialidad-id').value;
+            const nombre = document.getElementById('especialidad-nombre').value.trim();
+            const descripcion = document.getElementById('especialidad-descripcion').value.trim();
+            const icono = document.getElementById('especialidad-icono').value.trim();
+            const activa = document.getElementById('especialidad-activa').checked;
+            
+            if (!nombre) {
+                await showAppAlert({
+                    icon: 'warning',
+                    title: 'Información incompleta',
+                    text: 'El nombre es obligatorio.'
+                });
+                return;
+            }
+            
+            const especialidad = {
+                id: modoEdicion ? parseInt(id) : 0,
+                nombre: nombre,
+                descripcion: descripcion || null,
+                icono: icono || null,
+                activa: activa
+            };
+            
+            try {
+                const url = modoEdicion ? `/Especialidades/EditAjax/${id}` : '/Especialidades/CreateAjax';
+                const method = 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(especialidad)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    await showAppAlert({
+                        icon: 'success',
+                        title: 'Especialidad guardada',
+                        text: data.message || 'Los cambios se guardaron correctamente.'
+                    });
+                    cerrarModal();
+                    location.reload();
+                } else {
+                    await showAppAlert({
+                        icon: 'error',
+                        title: 'No se pudo guardar',
+                        text: data.message || 'Error al guardar especialidad'
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                await showAppAlert({
+                    icon: 'error',
+                    title: 'Error inesperado',
+                    text: 'Error al guardar especialidad'
+                });
+            }
+        }
+        
+        async function eliminarEspecialidad(id) {
+            const confirmado = await showAppConfirm({
+                title: 'Eliminar especialidad',
+                text: '¿Estás seguro de eliminar esta especialidad?',
+                icon: 'warning',
+                confirmButtonText: 'Eliminar'
+            });
+            if (!confirmado) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/Especialidades/DeleteAjax/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    await showAppAlert({
+                        icon: 'success',
+                        title: 'Especialidad eliminada',
+                        text: data.message || 'Se eliminó la especialidad correctamente.'
+                    });
+                    location.reload();
+                } else {
+                    await showAppAlert({
+                        icon: 'error',
+                        title: 'No se pudo eliminar',
+                        text: data.message || 'Error al eliminar especialidad'
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                await showAppAlert({
+                    icon: 'error',
+                    title: 'Error inesperado',
+                    text: 'Error al eliminar especialidad'
+                });
+            }
+        }
+    </script>
+}

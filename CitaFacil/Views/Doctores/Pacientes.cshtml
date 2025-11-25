@@ -1,0 +1,67 @@
+﻿@model IEnumerable<CitaFacil.Models.Paciente>
+@{
+    Layout = "_DoctorLayout";
+    ViewData["Title"] = "Mis Pacientes";
+}
+
+<!-- Título y Botón de Crear -->
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+    <div>
+        <h1 class="text-4xl font-black tracking-tighter text-text-light dark:text-text-dark">
+            Mis Pacientes
+        </h1>
+        <p class="text-lg text-zinc-500 dark:text-zinc-400">
+            Lista de todos tus pacientes.
+        </p>
+    </div>
+    <!-- Opcional: El doctor podría no tener permiso para crear pacientes directamente
+    <a asp-controller="Pacientes" asp-action="Create" class="flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors duration-200">
+        <span class="material-symbols-outlined">add</span>
+        <span>Nuevo Paciente</span>
+    </a>
+    -->
+</div>
+
+<!-- Tabla de Contenido -->
+<div class="bg-white dark:bg-zinc-800 rounded-lg shadow-md overflow-hidden">
+    <!-- Barra de Búsqueda y Filtros -->
+    <div class="p-4 border-b dark:border-zinc-700">
+        <div class="relative">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">search</span>
+            <input type="text" placeholder="Buscar por nombre o correo..." class="w-full pl-10 pr-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 focus:ring-primary focus:border-primary">
+        </div>
+    </div>
+
+    <!-- Tabla de Pacientes -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-left">
+            <thead class="bg-zinc-50 dark:bg-zinc-700">
+                <tr>
+                    <th class="px-6 py-3 text-sm font-semibold text-zinc-600 dark:text-zinc-300 uppercase">Paciente</th>
+                    <th class="px-6 py-3 text-sm font-semibold text-zinc-600 dark:text-zinc-300 uppercase">Correo</th>
+                    <th class="px-6 py-3 text-sm font-semibold text-zinc-600 dark:text-zinc-300 uppercase">Celular</th>
+                    <th class="px-6 py-3 text-sm font-semibold text-zinc-600 dark:text-zinc-300 uppercase">Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
+                @foreach (var item in Model)
+                {
+                    <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-700/50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="font-medium text-text-light dark:text-text-dark">@item.Usuario.usuario @item.apellido</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-zinc-600 dark:text-zinc-300">@item.Usuario.correo</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-zinc-600 dark:text-zinc-300">@item.Usuario.celular</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <a href="#" class="text-primary hover:underline">Ver Historial</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

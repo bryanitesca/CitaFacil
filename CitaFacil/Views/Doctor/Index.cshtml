@@ -1,0 +1,864 @@
+@using System.Linq
+@using System.Globalization
+@model CitaFacil.ViewModels.DoctorDashboardViewModel
+@{
+    Layout = "_DoctorLayout";
+    ViewData["Title"] = "Dashboard del Doctor";
+    var cultura = new CultureInfo("es-MX");
+    var fechaTitulo = DateTime.Today.ToString("dddd, dd 'de' MMMM", cultura);
+
+    string ClaseEstado(string estado) => estado?.ToUpperInvariant() switch
+    {
+        "CONFIRMADA" => "text-green-700 bg-green-100",
+        "COMPLETADA" => "text-gray-700 bg-gray-200", 
+        "CANCELADA" => "text-red-700 bg-red-100",
+        "INICIADA" => "text-blue-700 bg-blue-100",
+        "PENDIENTE" => "text-yellow-800 bg-yellow-100",
+        _ => "text-primary bg-primary/10"
+    };
+
+    string TextoEstado(string estado) => estado?.ToUpperInvariant() switch
+    {
+        "CONFIRMADA" => "Confirmada",
+        "COMPLETADA" => "Completada",
+        "CANCELADA" => "Cancelada", 
+        "INICIADA" => "En consulta",
+        "PENDIENTE" => "Pendiente",
+        _ => "Sin estado"
+    };
+}
+
+<!-- Main Content -->
+<div class="flex-1 flex flex-col">
+    <form id="doctor-dashboard-antiforgery" method="post" class="hidden">@Html.AntiForgeryToken()</form>
+    <!-- TopNavBar -->
+    <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-gray-200 px-10 py-3 bg-white">
+        <h2 class="text-lg font-bold leading-tight tracking-[-0.015em] text-gray-800">Dashboard del Doctor</h2>
+        <div class="flex flex-1 justify-end gap-4 items-center">
+            <div class="relative flex flex-col min-w-40 max-w-64">
+                <div class="flex w-full flex-1 items-stretch rounded-lg h-10">
+                    <div class="text-gray-500 flex border-none bg-gray-100 items-center justify-center pl-4 rounded-l-lg border-r-0">
+                        <span class="material-symbols-outlined">search</span>
+                    </div>
+                    <input id="search-patients-input" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-lg text-gray-800 focus:outline-0 focus:ring-0 border-none bg-gray-100 focus:border-none h-full placeholder:text-gray-500 px-4 pl-2 text-base font-normal leading-normal" placeholder="Buscar Pacientes" value=""/>
+                </div>
+                <div id="search-results" class="hidden absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 max-h-64 overflow-y-auto z-50"></div>
+            </div>
+            <div class="flex gap-2 relative">
+                <button id="btn-notifications" class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 w-10 bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors relative">
+                    <span class="material-symbols-outlined">notifications</span>
+                    <span id="notification-badge" class="hidden absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                </button>
+                <!-- Dropdown de notificaciones -->
+                <div id="notifications-dropdown" class="hidden absolute right-0 top-12 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
+                    <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-gray-900">Notificaciones</h3>
+                        <button id="btn-mark-all-read" class="hidden text-xs text-primary hover:text-primary-dark font-semibold">
+                            Marcar todas como leídas
+                        </button>
+                    </div>
+                    <div id="notifications-content" class="max-h-[400px] overflow-y-auto overflow-x-hidden">
+                        <div class="p-6 text-center text-gray-500">
+                            <span class="material-symbols-outlined text-4xl mb-2">notifications_off</span>
+                            <p>No hay notificaciones</p>
+                        </div>
+                    </div>
+                    <div id="notifications-footer" class="hidden border-t border-gray-200 p-3 text-center">
+                        <a href="/Doctor/Notificaciones" class="text-sm text-primary hover:text-primary-dark font-semibold">
+                            Ver todas las notificaciones
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <main class="flex-1 flex overflow-hidden">
+        <!-- Center Column: Schedule -->
+        <div class="flex-1 p-6 overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                @{
+                    var tieneCitasHoy = Model.CitasDeHoy.Any(c => c.fecha.Date == DateTime.Today);
+                    var titulo = tieneCitasHoy ? $"Hoy, {cultura.TextInfo.ToTitleCase(fechaTitulo)}" : "Próximas Citas";
+                }
+                <p class="text-3xl font-black leading-tight tracking-[-0.033em] text-gray-900">@titulo</p>
+                <div class="flex items-center gap-2">
+                    <button id="btn-prev-day" class="p-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50">
+                        <span class="material-symbols-outlined">chevron_left</span>
+                    </button>
+                    <button id="btn-next-day" class="p-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50">
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Timeline -->
+            <div class="space-y-4">
+                @if (!Model.CitasDeHoy.Any())
+                {
+                    <div class="p-6 rounded-xl border border-dashed border-gray-300 text-center">
+                        <span class="material-symbols-outlined text-5xl text-gray-300">event_busy</span>
+                        <p class="mt-4 text-lg font-semibold text-gray-800">Sin citas programadas</p>
+                        <p class="text-sm text-gray-500">Aún no tienes citas asignadas para hoy.</p>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var cita in Model.CitasDeHoy)
+                    {
+                        var paciente = cita.Paciente;
+                        var nombrePaciente = paciente is null
+                            ? "Paciente sin registrar"
+                            : $"{paciente.nombre} {paciente.apellido}".Trim();
+                        var esSeleccionada = Model.CitaSeleccionada?.id == cita.id;
+                        var borderClass = esSeleccionada ? "border-2 border-primary bg-primary/10" : "bg-white border border-gray-200";
+                        
+                        <a class="grid grid-cols-[80px_1fr] gap-x-4 items-start p-4 rounded-xl @borderClass cursor-pointer hover:shadow-md transition-all" asp-action="Index" asp-route-citaId="@cita.id">
+                            <div class="text-right">
+                                <p class="text-base font-bold @(esSeleccionada ? "text-primary" : "text-gray-700")">@DateTime.Today.Add(cita.hora).ToString("hh:mm tt", cultura)</p>
+                                <p class="text-sm text-gray-600">@cita.duracion_minutos min</p>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-base font-medium text-gray-800">Cita con @nombrePaciente</p>
+                                <p class="text-sm text-gray-500 mb-2">@(string.IsNullOrWhiteSpace(cita.motivo) ? "Consulta general" : cita.motivo)</p>
+                                <span class="inline-flex items-center px-2 py-1 text-xs font-medium @ClaseEstado(cita.estado) rounded-full">@TextoEstado(cita.estado)</span>
+                            </div>
+                        </a>
+                    }
+                }
+            </div>
+        </div>
+        
+        <!-- Right Column: Contextual Details -->
+        <div class="w-[420px] bg-white border-l border-gray-200 flex flex-col p-6">
+            @if (Model.CitaSeleccionada is null || Model.PacienteSeleccionado is null)
+            {
+                <!-- Empty State -->
+                <div class="flex flex-col items-center justify-center text-center gap-3 py-16">
+                    <span class="material-symbols-outlined text-5xl text-gray-300">person_search</span>
+                    <p class="text-lg font-semibold text-gray-800">Selecciona una cita</p>
+                    <p class="text-sm text-gray-500">Haz clic en una cita para ver los detalles del paciente.</p>
+                </div>
+            }
+            else
+            {
+                var cita = Model.CitaSeleccionada;
+                var paciente = Model.PacienteSeleccionado;
+                var nombreCompleto = $"{paciente.nombre} {paciente.apellido}".Trim();
+                var edad = DateTime.Today.Year - paciente.fecha_nacimiento.Year;
+                if (paciente.fecha_nacimiento.Date > DateTime.Today.AddYears(-edad)) edad--;
+                
+                <!-- ProfileHeader -->
+                <div class="flex flex-col gap-4 items-center text-center pb-6 border-b border-gray-200 dark:border-gray-700">
+                    <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-24 h-24 bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-4xl text-gray-600 dark:text-gray-300">person</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <p class="text-xl font-bold leading-tight tracking-[-0.015em] text-gray-900 dark:text-white">@nombreCompleto</p>
+                        <p class="text-base font-normal leading-normal text-gray-500 dark:text-gray-400">@edad años</p>
+                        <p class="text-sm font-normal leading-normal text-gray-500 dark:text-gray-400">Fecha de Nac.: @paciente.fecha_nacimiento.ToString("dd/MM/yyyy")</p>
+                    </div>
+                    <div class="flex w-full gap-3 mt-2">
+                        <a href="@Url.Action("Expediente", "Doctor", new { id = paciente.id })" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white text-sm font-bold leading-normal tracking-[0.015em] flex-1">
+                            <span class="truncate">Ver Historial</span>
+                        </a>
+                        @if (!string.Equals(cita.estado, "COMPLETADA", StringComparison.OrdinalIgnoreCase) && !string.Equals(cita.estado, "CANCELADA", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var estadoActual = (cita.estado ?? "PENDIENTE").ToUpperInvariant();
+                            var esConsultaIniciada = string.Equals(cita.estado, "INICIADA", StringComparison.OrdinalIgnoreCase);
+                            <button id="consulta-action-btn" data-cita-id="@cita.id" data-estado="@estadoActual" onclick="handleConsultaAction(@cita.id, '@estadoActual')" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] flex-1">
+                                <span class="truncate">@(esConsultaIniciada ? "Terminar consulta" : "Iniciar consulta")</span>
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <div id="dashboard-cita-actions" data-cita-id="@cita.id" data-estado="@(cita.estado?.ToUpperInvariant())" class="w-full mt-4">
+                    <div class="flex flex-col gap-3 sm:flex-row">
+                        <button id="dashboard-confirmar-cita" type="button" class="flex-1 px-4 py-2.5 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition-colors @(string.Equals(cita.estado, "PENDIENTE", StringComparison.OrdinalIgnoreCase) ? string.Empty : "hidden")">
+                            Confirmar cita
+                        </button>
+                        <button id="dashboard-mostrar-cancelacion" type="button" class="flex-1 px-4 py-2.5 rounded-lg border border-red-300 text-red-600 text-sm font-semibold hover:bg-red-50 transition-colors @((string.Equals(cita.estado, "CANCELADA", StringComparison.OrdinalIgnoreCase) || string.Equals(cita.estado, "COMPLETADA", StringComparison.OrdinalIgnoreCase)) ? "hidden" : string.Empty)">
+                            Cancelar cita
+                        </button>
+                    </div>
+                    <div id="dashboard-cancel-panel" class="hidden mt-3 rounded-lg border border-red-200 bg-red-50 p-4">
+                        <label for="dashboard-cancel-reason" class="text-sm font-semibold text-red-800">Motivo de cancelación</label>
+                        <textarea id="dashboard-cancel-reason" rows="3" class="mt-2 w-full rounded-lg border border-red-200 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500"></textarea>
+                        <p id="dashboard-cancel-error" class="mt-2 text-sm text-red-600 hidden"></p>
+                        <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:justify-end">
+                            <button type="button" id="dashboard-cancelar-cancelacion" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 text-sm font-semibold hover:bg-gray-100">Descartar</button>
+                            <button type="button" id="dashboard-enviar-cancelacion" class="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700">Enviar cancelación</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tabbed Interface -->
+                <div class="flex-1 mt-6">
+                    <div class="border-b border-gray-200 dark:border-gray-700">
+                        <nav aria-label="Tabs" class="-mb-px flex space-x-6">
+                            <button type="button" class="tab-trigger whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-primary text-primary" data-tab-target="tab-detalles">Detalles de la Cita</button>
+                            <button type="button" class="tab-trigger whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent hover:border-gray-300" data-tab-target="tab-historial">Historial del Paciente</button>
+                            <button type="button" class="tab-trigger whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent hover:border-gray-300" data-tab-target="tab-notas">Notas</button>
+                        </nav>
+                    </div>
+                    <div id="tab-detalles" data-tab-content class="py-4 space-y-4 text-sm">
+                        <div>
+                            <h4 class="font-semibold text-gray-700 dark:text-gray-300">Motivo de la Visita</h4>
+                            <p class="text-gray-600 dark:text-gray-400">@(string.IsNullOrWhiteSpace(cita.motivo) ? "Consulta general" : cita.motivo)</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-700 dark:text-gray-300">Información de Contacto</h4>
+                            <p class="text-gray-600 dark:text-gray-400">Email: @(paciente.Usuario?.correo ?? "No registrado")</p>
+                            <p class="text-gray-600 dark:text-gray-400">Celular: @(paciente.Usuario?.celular ?? "No registrado")</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-700 dark:text-gray-300">Información Adicional</h4>
+                            <p class="text-gray-600 dark:text-gray-400">Género: @(paciente.genero ?? "No especificado")</p>
+                            <p class="text-gray-600 dark:text-gray-400">Dirección: @(paciente.direccion ?? "No registrada")</p>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(cita.diagnostico))
+                        {
+                            <div>
+                                <h4 class="font-semibold text-gray-700 dark:text-gray-300">Diagnóstico</h4>
+                                <p class="text-gray-600 dark:text-gray-400">@cita.diagnostico</p>
+                            </div>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(cita.tratamiento_recomendado))
+                        {
+                            <div>
+                                <h4 class="font-semibold text-gray-700 dark:text-gray-300">Tratamiento recomendado</h4>
+                                <p class="text-gray-600 dark:text-gray-400">@cita.tratamiento_recomendado</p>
+                            </div>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(cita.notas))
+                        {
+                            <div>
+                                <h4 class="font-semibold text-gray-700 dark:text-gray-300">Notas de la Cita</h4>
+                                <p class="text-gray-600 dark:text-gray-400">@cita.notas</p>
+                            </div>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(cita.motivo_cancelacion))
+                        {
+                            <div class="rounded-lg border border-red-200 bg-red-50 p-3">
+                                <h4 class="font-semibold text-red-700">Motivo de cancelación</h4>
+                                <p class="text-sm text-red-700 mt-1">@cita.motivo_cancelacion</p>
+                            </div>
+                        }
+                    </div>
+                    <div id="tab-historial" data-tab-content class="py-4 space-y-3 text-sm hidden">
+                        @if (Model.HistorialPaciente.Any())
+                        {
+                            foreach (var citaHist in Model.HistorialPaciente)
+                            {
+                                <div class="rounded-lg border border-gray-200 p-3">
+                                    <div class="flex items-center justify-between text-xs font-semibold text-gray-700">
+                                        <span>@citaHist.fecha.ToString("dd/MM/yyyy") @DateTime.Today.Add(citaHist.hora).ToString("hh:mm tt", cultura)</span>
+                                        <span class="px-2 py-0.5 rounded-full text-[11px] @ClaseEstado(citaHist.estado)">@TextoEstado(citaHist.estado)</span>
+                                    </div>
+                                    <p class="text-gray-600 text-sm mt-2">@(string.IsNullOrWhiteSpace(citaHist.motivo) ? "Consulta" : citaHist.motivo)</p>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-gray-500">Sin historial disponible para este paciente.</p>
+                        }
+                    </div>
+                    <div id="tab-notas" data-tab-content class="py-4 space-y-3 text-sm hidden">
+                        @if (Model.NotasPaciente.Any())
+                        {
+                            foreach (var nota in Model.NotasPaciente)
+                            {
+                                <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                                    <p class="text-xs text-gray-500">@nota.fecha.ToString("dd/MM/yyyy") @DateTime.Today.Add(nota.hora).ToString("hh:mm tt", cultura)</p>
+                                    <p class="mt-2 text-gray-700">@nota.notas</p>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-gray-500">Aún no hay notas registradas.</p>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </main>
+</div>
+
+<!-- Modal Iniciar Consulta -->
+<div id="modal-iniciar-consulta" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50">
+    <div class="flex min-h-screen items-center justify-center p-4">
+        <div class="relative w-full max-w-2xl rounded-xl bg-white dark:bg-zinc-800 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-700 p-6">
+                <h3 class="text-xl font-bold text-text-light dark:text-text-dark">Terminar consulta</h3>
+                <button onclick="closeConsultaModal()" class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <form id="form-iniciar-consulta" class="p-6 space-y-4">
+                <input type="hidden" id="consulta-cita-id" />
+                
+                <div>
+                    <label class="block text-sm font-semibold text-text-light dark:text-text-dark mb-2">Diagnóstico *</label>
+                    <textarea id="consulta-diagnostico" rows="3" required class="w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 focus:ring-primary focus:border-primary text-text-light dark:text-text-dark" placeholder="Describa el diagnóstico"></textarea>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-text-light dark:text-text-dark mb-2">Tratamiento recomendado *</label>
+                    <textarea id="consulta-tratamiento" rows="3" required class="w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 focus:ring-primary focus:border-primary text-text-light dark:text-text-dark" placeholder="Describa el tratamiento"></textarea>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-text-light dark:text-text-dark mb-2">Notas adicionales</label>
+                    <textarea id="consulta-notas" rows="2" class="w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 focus:ring-primary focus:border-primary text-text-light dark:text-text-dark" placeholder="Notas adicionales (opcional)"></textarea>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="consulta-agendar-nueva" class="rounded border-zinc-300 text-primary focus:ring-primary" />
+                    <label for="consulta-agendar-nueva" class="text-sm font-semibold text-text-light dark:text-text-dark">¿Agendar cita de seguimiento?</label>
+                </div>
+                
+                <div id="nueva-cita-section" class="hidden space-y-3 p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-sm font-semibold text-text-light dark:text-text-dark mb-1">Fecha</label>
+                            <input type="date" id="nueva-cita-fecha" class="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 focus:ring-primary focus:border-primary text-text-light dark:text-text-dark" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-text-light dark:text-text-dark mb-1">Hora</label>
+                            <input type="time" id="nueva-cita-hora" class="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 focus:ring-primary focus:border-primary text-text-light dark:text-text-dark" />
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-text-light dark:text-text-dark mb-1">Motivo de la cita de seguimiento</label>
+                        <input type="text" id="nueva-cita-motivo" class="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 focus:ring-primary focus:border-primary text-text-light dark:text-text-dark" placeholder="Ej: Revisión de tratamiento" />
+                    </div>
+                    <p id="consulta-seguimiento-error" class="text-sm text-red-600 hidden"></p>
+                </div>
+            </form>
+            
+            <div class="flex items-center justify-end gap-3 border-t border-zinc-200 dark:border-zinc-700 p-6">
+                <button onclick="closeConsultaModal()" class="px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700">Cancelar</button>
+                <button onclick="guardarConsulta()" class="px-4 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark">Terminar consulta</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    </style>
+    <script>
+        // Modal Consulta
+        function openConsultaModal(citaId) {
+            document.getElementById('consulta-cita-id').value = citaId;
+            document.getElementById('modal-iniciar-consulta').classList.remove('hidden');
+            const seguimientoError = document.getElementById('consulta-seguimiento-error');
+            if (seguimientoError) {
+                seguimientoError.classList.add('hidden');
+                seguimientoError.textContent = '';
+            }
+        }
+        
+        function closeConsultaModal() {
+            document.getElementById('modal-iniciar-consulta').classList.add('hidden');
+            document.getElementById('form-iniciar-consulta').reset();
+            document.getElementById('nueva-cita-section').classList.add('hidden');
+            const seguimientoError = document.getElementById('consulta-seguimiento-error');
+            if (seguimientoError) {
+                seguimientoError.classList.add('hidden');
+                seguimientoError.textContent = '';
+            }
+        }
+        
+        document.getElementById('consulta-agendar-nueva').addEventListener('change', function() {
+            const section = document.getElementById('nueva-cita-section');
+            if (this.checked) {
+                section.classList.remove('hidden');
+            } else {
+                section.classList.add('hidden');
+            }
+            const seguimientoError = document.getElementById('consulta-seguimiento-error');
+            if (seguimientoError) {
+                seguimientoError.classList.add('hidden');
+                seguimientoError.textContent = '';
+            }
+        });
+        
+        async function guardarConsulta() {
+            const citaId = document.getElementById('consulta-cita-id').value;
+            const diagnostico = document.getElementById('consulta-diagnostico').value.trim();
+            const tratamiento = document.getElementById('consulta-tratamiento').value.trim();
+            const notas = document.getElementById('consulta-notas').value.trim();
+            const agendarNueva = document.getElementById('consulta-agendar-nueva').checked;
+            const seguimientoError = document.getElementById('consulta-seguimiento-error');
+
+            if (seguimientoError) {
+                seguimientoError.classList.add('hidden');
+                seguimientoError.textContent = '';
+            }
+            
+            if (!diagnostico || !tratamiento) {
+                await showAppAlert({
+                    icon: 'warning',
+                    title: 'Completa la información',
+                    text: 'Por favor completa el diagnóstico y tratamiento.'
+                });
+                return;
+            }
+
+            const nuevaFecha = document.getElementById('nueva-cita-fecha').value;
+            const nuevaHora = document.getElementById('nueva-cita-hora').value;
+            const nuevaMotivo = document.getElementById('nueva-cita-motivo').value.trim();
+
+            if (agendarNueva && (!nuevaFecha || !nuevaHora)) {
+                if (seguimientoError) {
+                    seguimientoError.textContent = 'Completa la fecha y hora del seguimiento.';
+                    seguimientoError.classList.remove('hidden');
+                }
+                return;
+            }
+            
+            const data = {
+                diagnostico,
+                tratamiento,
+                notas,
+                agendarSeguimiento: agendarNueva,
+                seguimiento_fecha: agendarNueva ? nuevaFecha : null,
+                seguimiento_hora: agendarNueva ? nuevaHora : null,
+                seguimiento_motivo: agendarNueva ? (nuevaMotivo || 'Cita de seguimiento') : null
+            };
+            
+            try {
+                const response = await fetch('/Citas/FinalizarConsulta/' + citaId, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': getDashboardRequestVerificationToken()
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    await showAppAlert({
+                        icon: 'success',
+                        title: 'Consulta finalizada',
+                        text: result.message || 'Consulta finalizada correctamente'
+                    });
+                    closeConsultaModal();
+                    window.location.reload();
+                } else {
+                    if (seguimientoError && agendarNueva) {
+                        seguimientoError.textContent = result.message || 'No se pudo agendar el seguimiento.';
+                        seguimientoError.classList.remove('hidden');
+                    } else {
+                        await showAppAlert({
+                            icon: 'error',
+                            title: 'No se pudo finalizar',
+                            text: result.message || 'Error al finalizar consulta'
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                await showAppAlert({
+                    icon: 'error',
+                    title: 'Error inesperado',
+                    text: 'Error al finalizar consulta'
+                });
+            }
+        }
+
+        async function handleConsultaAction(citaId, estadoActual) {
+            const estadoNormalizado = (estadoActual || '').toUpperCase();
+
+            if (estadoNormalizado === 'INICIADA') {
+                openConsultaModal(citaId);
+                return;
+            }
+
+            const iniciado = await iniciarConsulta(citaId);
+            if (iniciado) {
+                const actionBtn = document.getElementById('consulta-action-btn');
+                if (actionBtn && actionBtn.dataset.citaId === String(citaId)) {
+                    actionBtn.dataset.estado = 'INICIADA';
+                    const label = actionBtn.querySelector('span');
+                    if (label) {
+                        label.textContent = 'Terminar consulta';
+                    }
+                    actionBtn.setAttribute('onclick', `handleConsultaAction(${citaId}, 'INICIADA')`);
+                }
+                await showAppAlert({
+                    icon: 'info',
+                    title: 'Consulta iniciada',
+                    text: 'Cuando termines, presiona "Terminar consulta" para registrar los detalles.'
+                });
+            }
+        }
+
+        async function iniciarConsulta(citaId) {
+            try {
+                const response = await fetch(`/Citas/UpdateStatusAjax/${citaId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': getDashboardRequestVerificationToken()
+                    },
+                    body: JSON.stringify({ estado: 'INICIADA' })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    return true;
+                }
+
+                await showAppAlert({
+                    icon: 'error',
+                    title: 'No se pudo iniciar la consulta',
+                    text: result.message || 'Intenta nuevamente en unos segundos.'
+                });
+                return false;
+            } catch (error) {
+                console.error('Error:', error);
+                await showAppAlert({
+                    icon: 'error',
+                    title: 'Error inesperado',
+                    text: 'No se pudo iniciar la consulta.'
+                });
+                return false;
+            }
+        }
+
+        function getDashboardRequestVerificationToken() {
+            const tokenInput = document.querySelector('#doctor-dashboard-antiforgery input[name="__RequestVerificationToken"]');
+            return tokenInput ? tokenInput.value : '';
+        }
+
+        async function actualizarEstadoCitaDashboard(citaId, estado, motivo = null) {
+            try {
+                const response = await fetch(`/Citas/UpdateStatusAjax/${citaId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': getDashboardRequestVerificationToken()
+                    },
+                    body: JSON.stringify({ estado: estado, motivo_cancelacion: motivo })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    window.location.reload();
+                } else {
+                    await showAppAlert({
+                        icon: 'error',
+                        title: 'Acción no completada',
+                        text: result.message || 'No se pudo actualizar la cita.'
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                await showAppAlert({
+                    icon: 'error',
+                    title: 'Error inesperado',
+                    text: 'No se pudo actualizar la cita.'
+                });
+            }
+        }
+
+        function toggleDashboardCancelPanel(show) {
+            const panel = document.getElementById('dashboard-cancel-panel');
+            const textarea = document.getElementById('dashboard-cancel-reason');
+            const errorLabel = document.getElementById('dashboard-cancel-error');
+
+            if (!panel) {
+                return;
+            }
+
+            if (show) {
+                panel.classList.remove('hidden');
+                textarea?.focus();
+            } else {
+                panel.classList.add('hidden');
+                if (textarea) {
+                    textarea.value = '';
+                }
+                if (errorLabel) {
+                    errorLabel.classList.add('hidden');
+                    errorLabel.textContent = '';
+                }
+            }
+        }
+        
+        // Búsqueda de pacientes
+        const searchInput = document.getElementById('search-patients-input');
+        const searchResults = document.getElementById('search-results');
+        let searchTimeout;
+        
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const query = this.value.trim();
+            
+            if (query.length < 2) {
+                searchResults.classList.add('hidden');
+                return;
+            }
+            
+            searchTimeout = setTimeout(async () => {
+                try {
+                    const response = await fetch('/Doctor/BuscarPacientes?termino=' + encodeURIComponent(query));
+                    const pacientes = await response.json();
+                    
+                    if (pacientes.length > 0) {
+                        searchResults.innerHTML = pacientes.map(p => `
+                            <a href="/Doctor/Expediente/${p.id}" class="block px-4 py-3 hover:bg-gray-50 border-b border-gray-200 last:border-0">
+                                <div class="font-semibold text-gray-800">${p.nombre}</div>
+                                <div class="text-sm text-gray-500">${p.correo}</div>
+                            </a>
+                        `).join('');
+                        searchResults.classList.remove('hidden');
+                    } else {
+                        searchResults.innerHTML = '<div class="px-4 py-3 text-center text-gray-500">No se encontraron pacientes</div>';
+                        searchResults.classList.remove('hidden');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            }, 300);
+        });
+        
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                searchResults.classList.add('hidden');
+            }
+        });
+        
+        // Notificaciones
+        const btnNotifications = document.getElementById('btn-notifications');
+        const notificationsDropdown = document.getElementById('notifications-dropdown');
+        const notificationsContent = document.getElementById('notifications-content');
+        const notificationBadge = document.getElementById('notification-badge');
+        
+        btnNotifications.addEventListener('click', function(e) {
+            e.stopPropagation();
+            notificationsDropdown.classList.toggle('hidden');
+            if (!notificationsDropdown.classList.contains('hidden')) {
+                cargarNotificaciones();
+            }
+        });
+        
+        // Cerrar dropdown al hacer click fuera
+        document.addEventListener('click', function(e) {
+            if (!btnNotifications.contains(e.target) && !notificationsDropdown.contains(e.target)) {
+                notificationsDropdown.classList.add('hidden');
+            }
+        });
+        
+        // Cargar notificaciones desde el servidor
+        async function cargarNotificaciones() {
+            try {
+                const response = await fetch('/Doctor/ObtenerNotificaciones');
+                const data = await response.json();
+                
+                if (!data.success) {
+                    notificationsContent.innerHTML = '<div class="p-4 text-center text-red-500">Error al cargar notificaciones</div>';
+                    return;
+                }
+                
+                const notificaciones = data.notificaciones;
+                const totalNoLeidas = data.totalNoLeidas;
+                const btnMarkAllRead = document.getElementById('btn-mark-all-read');
+                const notificationsFooter = document.getElementById('notifications-footer');
+                
+                // Actualizar badge
+                if (totalNoLeidas > 0) {
+                    notificationBadge.classList.remove('hidden');
+                } else {
+                    notificationBadge.classList.add('hidden');
+                }
+                
+                // Mostrar/ocultar botón "Marcar todas como leídas"
+                if (totalNoLeidas > 0) {
+                    btnMarkAllRead.classList.remove('hidden');
+                } else {
+                    btnMarkAllRead.classList.add('hidden');
+                }
+                
+                // Renderizar notificaciones
+                if (notificaciones.length === 0) {
+                    notificationsContent.innerHTML = `
+                        <div class="p-6 text-center text-gray-500">
+                            <span class="material-symbols-outlined text-4xl mb-2">notifications_off</span>
+                            <p>No hay notificaciones</p>
+                        </div>
+                    `;
+                    notificationsFooter.classList.add('hidden');
+                } else {
+                    // Limitar a 6 notificaciones en el dropdown
+                    const notificacionesLimitadas = notificaciones.slice(0, 6);
+                    let html = '';
+                    
+                    notificacionesLimitadas.forEach(notif => {
+                        const leidaClass = notif.leida ? 'bg-white' : 'bg-blue-50';
+                        html += `
+                            <div class="${leidaClass} p-4 border-b border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors" onclick="marcarComoLeida(${notif.id})">
+                                <div class="flex items-start gap-3">
+                                    <div class="flex-shrink-0 mt-1">
+                                        <span class="material-symbols-outlined text-primary">notifications_active</span>
+                                    </div>
+                                    <div class="flex-1 min-w-0 overflow-hidden">
+                                        <p class="text-sm font-semibold text-gray-900 truncate">${notif.asunto}</p>
+                                        <p class="text-xs text-gray-600 mt-1 line-clamp-2">${notif.mensaje}</p>
+                                        <p class="text-xs text-gray-400 mt-1">${notif.tiempoTranscurrido}</p>
+                                    </div>
+                                    ${!notif.leida ? '<div class="flex-shrink-0"><span class="w-2 h-2 bg-blue-500 rounded-full block"></span></div>' : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    notificationsContent.innerHTML = html;
+                    
+                    // Mostrar footer "Ver todas" si hay más de 6 notificaciones
+                    if (notificaciones.length > 6) {
+                        notificationsFooter.classList.remove('hidden');
+                    } else {
+                        notificationsFooter.classList.add('hidden');
+                    }
+                }
+            } catch (error) {
+                console.error('Error al cargar notificaciones:', error);
+                notificationsContent.innerHTML = '<div class="p-4 text-center text-red-500">Error al cargar notificaciones</div>';
+            }
+        }
+        
+        // Marcar notificación como leída
+        async function marcarComoLeida(notificacionId) {
+            try {
+                const response = await fetch('/Doctor/MarcarNotificacionLeida', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(notificacionId)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    cargarNotificaciones();
+                }
+            } catch (error) {
+                console.error('Error al marcar notificación como leída:', error);
+            }
+        }
+        
+        // Marcar todas las notificaciones como leídas
+        async function marcarTodasLeidas() {
+            try {
+                const response = await fetch('/Doctor/MarcarTodasLeidas', {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    cargarNotificaciones();
+                }
+            } catch (error) {
+                console.error('Error al marcar todas como leídas:', error);
+            }
+        }
+        
+        // Vincular botón de marcar todas como leídas
+        document.getElementById('btn-mark-all-read').addEventListener('click', function(e) {
+            e.stopPropagation();
+            marcarTodasLeidas();
+        });
+        
+        // Cargar conteo de notificaciones al inicio
+        async function cargarConteoNotificaciones() {
+            try {
+                const response = await fetch('/Doctor/ObtenerNotificaciones');
+                const data = await response.json();
+                
+                if (data.success && data.totalNoLeidas > 0) {
+                    notificationBadge.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error al cargar conteo de notificaciones:', error);
+            }
+        }
+        
+        // Cargar conteo al inicio
+        cargarConteoNotificaciones();
+        
+        // Actualizar notificaciones cada 30 segundos
+        setInterval(cargarConteoNotificaciones, 30000);
+
+        // Tabs
+        const tabButtons = document.querySelectorAll('.tab-trigger');
+        const tabContents = document.querySelectorAll('[data-tab-content]');
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const target = this.dataset.tabTarget;
+                tabButtons.forEach(b => b.classList.remove('border-primary', 'text-primary'));
+                this.classList.add('border-primary', 'text-primary');
+                tabContents.forEach(content => {
+                    content.classList.toggle('hidden', content.id !== target);
+                });
+            });
+        });
+
+        // Dashboard action buttons
+        const dashboardActions = document.getElementById('dashboard-cita-actions');
+        if (dashboardActions) {
+            const citaId = dashboardActions.dataset.citaId;
+            const confirmarBtn = document.getElementById('dashboard-confirmar-cita');
+            const cancelarBtn = document.getElementById('dashboard-mostrar-cancelacion');
+            const cancelarEnviarBtn = document.getElementById('dashboard-enviar-cancelacion');
+            const cancelarCerrarBtn = document.getElementById('dashboard-cancelar-cancelacion');
+            const cancelarMotivoInput = document.getElementById('dashboard-cancel-reason');
+            const cancelarError = document.getElementById('dashboard-cancel-error');
+
+            confirmarBtn?.addEventListener('click', () => actualizarEstadoCitaDashboard(citaId, 'CONFIRMADA'));
+
+            cancelarBtn?.addEventListener('click', () => toggleDashboardCancelPanel(true));
+
+            cancelarCerrarBtn?.addEventListener('click', () => toggleDashboardCancelPanel(false));
+
+            cancelarEnviarBtn?.addEventListener('click', () => {
+                if (!cancelarMotivoInput) {
+                    return;
+                }
+
+                const motivo = cancelarMotivoInput.value.trim();
+                if (!motivo) {
+                    if (cancelarError) {
+                        cancelarError.textContent = 'Ingresa un motivo para cancelar la cita.';
+                        cancelarError.classList.remove('hidden');
+                    }
+                    return;
+                }
+
+                if (cancelarError) {
+                    cancelarError.classList.add('hidden');
+                    cancelarError.textContent = '';
+                }
+
+                actualizarEstadoCitaDashboard(citaId, 'CANCELADA', motivo);
+            });
+        }
+    </script>
+}

@@ -1,0 +1,23 @@
+@model CitaFacil.ViewModels.UserAvatarViewModel
+
+@{
+    var sizeClass = Model.Size switch
+    {
+        "sm" => "w-8 h-8 text-sm",
+        "md" => "w-10 h-10 text-base", 
+        "lg" => "w-12 h-12 text-lg",
+        "xl" => "w-16 h-16 text-xl",
+        _ => "w-10 h-10 text-base"
+    };
+}
+
+<div class="inline-flex items-center justify-center rounded-full bg-blue-500 text-white font-medium @sizeClass @Model.CssClass">
+    @if (!string.IsNullOrEmpty(Model.PhotoUrl))
+    {
+        <img src="@Model.PhotoUrl" alt="@Model.Name" class="w-full h-full object-cover rounded-full">
+    }
+    else
+    {
+        <span>@Model.Initials</span>
+    }
+</div>

@@ -1,0 +1,66 @@
+@model CitaFacil.ViewModels.ScheduleStep1ViewModel
+@{
+    Layout = "_PatientLayout";
+    ViewData["Title"] = "Agendar una cita - Paso 1";
+}
+
+<div class="space-y-10">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="space-y-2">
+            <h1 class="text-4xl font-black tracking-[-0.03em] text-text-light dark:text-text-dark">Selecciona la especialidad que necesitas</h1>
+            <p class="text-sm text-zinc-500 dark:text-zinc-400">Comienza el proceso eligiendo el área médica que mejor se adapta al motivo de tu consulta.</p>
+        </div>
+    </div>
+
+    <form method="get" asp-action="AgendarPaso1" class="relative">
+        @if (Model.CitaId.HasValue)
+        {
+            <input type="hidden" name="citaId" value="@Model.CitaId" />
+        }
+        <label class="flex w-full items-center gap-3 rounded-xl border border-zinc-200 bg-white px-4 py-3 shadow-sm focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/30 dark:border-zinc-700 dark:bg-zinc-900">
+            <span class="material-symbols-outlined text-zinc-400">search</span>
+            <input name="busqueda" value="@Model.Busqueda" class="flex-1 border-0 bg-transparent text-sm text-text-light placeholder:text-zinc-400 focus:ring-0 dark:text-text-dark" placeholder="Buscar especialidad (Cardiología, Dermatología, etc.)" />
+            @if (!string.IsNullOrWhiteSpace(Model.Busqueda))
+            {
+                <a asp-action="AgendarPaso1" asp-route-citaId="@Model.CitaId" class="text-xs font-semibold text-primary hover:underline">Limpiar</a>
+            }
+        </label>
+    </form>
+
+    @if (Model.Especialidades.Count == 0)
+    {
+        <div class="rounded-2xl border border-dashed border-zinc-300 bg-white p-10 text-center dark:border-zinc-700 dark:bg-zinc-900">
+            <span class="material-symbols-outlined text-5xl text-zinc-300 dark:text-zinc-600">psychology_alt</span>
+            <p class="mt-4 text-lg font-semibold text-text-light dark:text-text-dark">Aún no hay especialidades disponibles</p>
+            <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Intenta más tarde o contacta a soporte para recibir ayuda.</p>
+        </div>
+    }
+    else
+    {
+        <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            @foreach (var especialidad in Model.Especialidades)
+            {
+                <a asp-action="AgendarPaso2"
+                   asp-route-especialidadId="@especialidad.Id"
+                   asp-route-citaId="@Model.CitaId"
+                   class="group relative flex flex-col gap-4 rounded-2xl border border-transparent bg-white p-6 shadow-sm transition hover:border-primary hover:shadow-lg dark:bg-zinc-900">
+                    <div class="flex items-center justify-between">
+                        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15 text-primary">
+                            <span class="material-symbols-outlined text-xl">@(!string.IsNullOrWhiteSpace(especialidad.Icono) ? especialidad.Icono : "clinical_notes")</span>
+                        </div>
+                        <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">@especialidad.TotalDoctores doctores</span>
+                    </div>
+                    <div class="space-y-2">
+                        <p class="text-lg font-semibold text-text-light transition group-hover:text-primary dark:text-text-dark">@especialidad.Nombre</p>
+                        <p class="text-sm text-zinc-500 dark:text-zinc-400">@(string.IsNullOrWhiteSpace(especialidad.Descripcion) ? "Descripción por definir" : especialidad.Descripcion)</p>
+                    </div>
+                    <span class="inline-flex items-center gap-1 text-sm font-semibold text-primary">
+                        Elegir especialidad
+                        <span class="material-symbols-outlined text-base">arrow_forward</span>
+                    </span>
+                </a>
+            }
+        </div>
+    }
+</div>
+

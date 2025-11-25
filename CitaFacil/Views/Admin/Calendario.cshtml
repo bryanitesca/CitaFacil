@@ -1,0 +1,351 @@
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Calendario de Citas - Administrador";
+}
+
+<!-- Main Content -->
+<main class="flex-1 p-8">
+    <div class="flex flex-wrap justify-between gap-3 items-center mb-8">
+        <div class="flex flex-col gap-1">
+            <p class="text-gray-900 dark:text-white text-4xl font-black leading-tight tracking-[-0.033em]">Calendario General</p>
+            <p class="text-gray-500 dark:text-gray-400 text-base font-normal leading-normal">Visualiza y gestiona todas las citas del sistema.</p>
+        </div>
+        <div class="flex items-center gap-4">
+            <!-- SegmentedButtons -->
+            <div class="flex h-10 w-64 items-center justify-center rounded-lg bg-gray-200/50 p-1 dark:bg-white/10">
+                <label class="flex h-full flex-1 cursor-pointer items-center justify-center overflow-hidden rounded-[0.375rem] px-2 text-sm font-medium leading-normal text-gray-600 has-[:checked]:bg-white has-[:checked]:text-gray-900 has-[:checked]:shadow-sm dark:text-gray-400 dark:has-[:checked]:bg-background-dark dark:has-[:checked]:text-white">
+                    <span class="truncate">Día</span>
+                    <input class="invisible w-0" name="calendarView" type="radio" value="timeGridDay"/>
+                </label>
+                <label class="flex h-full flex-1 cursor-pointer items-center justify-center overflow-hidden rounded-[0.375rem] px-2 text-sm font-medium leading-normal text-gray-600 has-[:checked]:bg-white has-[:checked]:text-gray-900 has-[:checked]:shadow-sm dark:text-gray-400 dark:has-[:checked]:bg-background-dark dark:has-[:checked]:text-white">
+                    <span class="truncate">Semana</span>
+                    <input checked="" class="invisible w-0" name="calendarView" type="radio" value="timeGridWeek"/>
+                </label>
+                <label class="flex h-full flex-1 cursor-pointer items-center justify-center overflow-hidden rounded-[0.375rem] px-2 text-sm font-medium leading-normal text-gray-600 has-[:checked]:bg-white has-[:checked]:text-gray-900 has-[:checked]:shadow-sm dark:text-gray-400 dark:has-[:checked]:bg-background-dark dark:has-[:checked]:text-white">
+                    <span class="truncate">Mes</span>
+                    <input class="invisible w-0" name="calendarView" type="radio" value="dayGridMonth"/>
+                </label>
+            </div>
+            <button id="btn-refresh" class="flex h-10 min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-gray-300 bg-white px-4 text-sm font-bold leading-normal tracking-[0.015em] text-gray-900 dark:border-gray-700 dark:bg-background-dark dark:text-white">
+                <span class="material-symbols-outlined mr-2">refresh</span>
+                <span class="truncate">Actualizar</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Toolbar & Calendar Grid -->
+    <div class="flex flex-1 flex-col">
+        <!-- ToolBar -->
+        <div class="flex items-center justify-between gap-2 mb-4">
+            <div class="flex items-center gap-2">
+                <button id="calendar-prev" class="flex h-10 w-10 items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-white/10">
+                    <span class="material-symbols-outlined text-gray-900 dark:text-white">chevron_left</span>
+                </button>
+                <button id="calendar-next" class="flex h-10 w-10 items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-white/10">
+                    <span class="material-symbols-outlined text-gray-900 dark:text-white">chevron_right</span>
+                </button>
+                <p id="calendar-title" class="text-xl font-bold text-gray-900 dark:text-white">Calendario</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <button id="calendar-today" class="flex h-10 min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-gray-300 bg-white px-4 text-sm font-bold leading-normal tracking-[0.015em] text-gray-900 dark:border-gray-700 dark:bg-background-dark dark:text-white">
+                    <span class="truncate">Hoy</span>
+                </button>
+                <!-- Filtros por Estado -->
+                <select id="status-filter" class="form-select rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-background-dark dark:text-white">
+                    <option value="">Todos los estados</option>
+                    <option value="PENDIENTE">Pendientes</option>
+                    <option value="CONFIRMADA">Confirmadas</option>
+                    <option value="COMPLETADA">Completadas</option>
+                    <option value="CANCELADA">Canceladas</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Calendar Container -->
+        <div class="bg-white dark:bg-background-dark rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+            <div id="calendar"></div>
+        </div>
+
+        <!-- Leyenda de colores -->
+        <div class="flex gap-6 p-4 mt-4">
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded" style="background-color: #f59e0b;"></div>
+                <span class="text-sm text-gray-600 dark:text-gray-400">Pendiente</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded" style="background-color: #10b981;"></div>
+                <span class="text-sm text-gray-600 dark:text-gray-400">Confirmada</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded" style="background-color: #3b82f6;"></div>
+                <span class="text-sm text-gray-600 dark:text-gray-400">Completada</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded" style="background-color: #ef4444;"></div>
+                <span class="text-sm text-gray-600 dark:text-gray-400">Cancelada</span>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Modal de Detalles de Cita para Admin -->
+<div id="modal-cita-details" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 hidden z-50">
+    <div class="bg-white dark:bg-background-dark rounded-xl w-full max-w-md p-6 relative">
+        <button id="btn-close-details" class="absolute top-4 right-4 p-1 rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+        
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Detalles de la Cita</h2>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Doctor:</label>
+                <p id="cita-doctor" class="text-gray-900 dark:text-white"></p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Paciente:</label>
+                <p id="cita-paciente" class="text-gray-900 dark:text-white"></p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Especialidad:</label>
+                <p id="cita-especialidad" class="text-gray-900 dark:text-white"></p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Motivo:</label>
+                <p id="cita-motivo" class="text-gray-900 dark:text-white"></p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Estado Actual:</label>
+                <span id="cita-estado" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"></span>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cambiar Estado:</label>
+                <select id="nuevo-estado" class="form-select w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                    <option value="PENDIENTE">Pendiente</option>
+                    <option value="CONFIRMADA">Confirmada</option>
+                    <option value="COMPLETADA">Completada</option>
+                    <option value="CANCELADA">Cancelada</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="flex justify-end gap-2 mt-6">
+            <button id="btn-update-status" class="px-4 py-2 rounded-lg bg-primary text-white text-sm font-bold hover:bg-primary/90">
+                Actualizar Estado
+            </button>
+            <button id="btn-delete-cita" class="px-4 py-2 rounded-lg bg-red-500 text-white text-sm font-bold hover:bg-red-600">
+                Eliminar Cita
+            </button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/locales/es.global.min.js"></script>
+    <script>
+        let calendar;
+        let currentCitaId = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                locale: 'es',
+                initialView: 'timeGridWeek',
+                headerToolbar: false,
+                height: 600,
+                slotMinTime: '08:00:00',
+                slotMaxTime: '18:00:00',
+                slotDuration: '01:00:00',
+                allDaySlot: false,
+                events: '@Url.Action("GetCitasJson", "Admin")',
+                eventClick: function(info) {
+                    showCitaDetails(info.event);
+                },
+                eventDidMount: function(info) {
+                    info.el.style.border = 'none';
+                    info.el.style.borderRadius = '8px';
+                    info.el.style.cursor = 'pointer';
+                }
+            });
+
+            calendar.render();
+            updateCalendarTitle();
+
+            // Navigation controls
+            document.getElementById('calendar-prev').addEventListener('click', function() {
+                calendar.prev();
+                updateCalendarTitle();
+            });
+
+            document.getElementById('calendar-next').addEventListener('click', function() {
+                calendar.next();
+                updateCalendarTitle();
+            });
+
+            document.getElementById('calendar-today').addEventListener('click', function() {
+                calendar.today();
+                updateCalendarTitle();
+            });
+
+            // View switcher
+            document.querySelectorAll('input[name="calendarView"]').forEach(function(radio) {
+                radio.addEventListener('change', function() {
+                    if (this.checked) {
+                        calendar.changeView(this.value);
+                        updateCalendarTitle();
+                    }
+                });
+            });
+
+            // Status filter
+            document.getElementById('status-filter').addEventListener('change', function() {
+                var selectedStatus = this.value;
+                calendar.getEvents().forEach(function(event) {
+                    if (selectedStatus === '' || event.extendedProps.estado === selectedStatus) {
+                        event.setProp('display', 'auto');
+                    } else {
+                        event.setProp('display', 'none');
+                    }
+                });
+            });
+
+            // Refresh button
+            document.getElementById('btn-refresh').addEventListener('click', function() {
+                calendar.refetchEvents();
+            });
+
+            // Modal controls
+            document.getElementById('btn-close-details').addEventListener('click', hideModal);
+            document.getElementById('btn-update-status').addEventListener('click', updateCitaStatus);
+            document.getElementById('btn-delete-cita').addEventListener('click', deleteCita);
+        });
+
+        function updateCalendarTitle() {
+            var title = calendar.view.title;
+            document.getElementById('calendar-title').textContent = title;
+        }
+
+        function showCitaDetails(event) {
+            currentCitaId = event.id;
+            
+            document.getElementById('cita-doctor').textContent = event.extendedProps.doctorNombre;
+            document.getElementById('cita-paciente').textContent = event.extendedProps.pacienteNombre;
+            document.getElementById('cita-especialidad').textContent = event.extendedProps.especialidad;
+            document.getElementById('cita-motivo').textContent = event.extendedProps.motivo || 'Sin motivo especificado';
+            
+            const estadoBadge = document.getElementById('cita-estado');
+            estadoBadge.textContent = getEstadoText(event.extendedProps.estado);
+            estadoBadge.className = 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ' + getEstadoClass(event.extendedProps.estado);
+            
+            document.getElementById('nuevo-estado').value = event.extendedProps.estado;
+            
+            document.getElementById('modal-cita-details').classList.remove('hidden');
+        }
+
+        function hideModal() {
+            document.getElementById('modal-cita-details').classList.add('hidden');
+            currentCitaId = null;
+        }
+
+        function updateCitaStatus() {
+            if (!currentCitaId) return;
+            
+            const nuevoEstado = document.getElementById('nuevo-estado').value;
+            
+            fetch(`/Admin/UpdateCitaStatusAdmin/${currentCitaId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({ Estado: nuevoEstado })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Estado actualizado correctamente', 'success');
+                    calendar.refetchEvents();
+                    hideModal();
+                } else {
+                    showNotification(data.message || 'Error al actualizar el estado', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Error al actualizar el estado', 'error');
+            });
+        }
+
+        async function deleteCita() {
+            if (!currentCitaId) return;
+
+            const confirmed = await showAppConfirm({
+                title: 'Eliminar cita',
+                text: '¿Estás seguro de que quieres eliminar esta cita?',
+                icon: 'warning',
+                confirmButtonText: 'Sí, eliminar'
+            });
+
+            if (!confirmed) return;
+            
+            fetch(`/Admin/DeleteCitaAdmin/${currentCitaId}`, {
+                method: 'DELETE',
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Cita eliminada correctamente', 'success');
+                    calendar.refetchEvents();
+                    hideModal();
+                } else {
+                    showNotification(data.message || 'Error al eliminar la cita', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Error al eliminar la cita', 'error');
+            });
+        }
+
+        function getEstadoText(estado) {
+            const textos = {
+                'PENDIENTE': 'Pendiente',
+                'CONFIRMADA': 'Confirmada',
+                'COMPLETADA': 'Completada',
+                'CANCELADA': 'Cancelada'
+            };
+            return textos[estado] || estado;
+        }
+
+        function getEstadoClass(estado) {
+            const clases = {
+                'PENDIENTE': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
+                'CONFIRMADA': 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+                'COMPLETADA': 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
+                'CANCELADA': 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+            };
+            return clases[estado] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm ${
+                type === 'success' ? 'bg-green-500 text-white' :
+                type === 'error' ? 'bg-red-500 text-white' :
+                'bg-blue-500 text-white'
+            }`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+    </script>
+}

@@ -1,0 +1,303 @@
+@model CitaFacil.ViewModels.ScheduleStep2ViewModel
+@using System.Text.Json
+@using System.Linq
+@{
+    Layout = "_PatientLayout";
+    ViewData["Title"] = "Agendar una cita - Paso 2";
+    var errorMessage = TempData["ErrorMessage"] as string;
+
+    DateOnly? firstAvailableDate = Model.FechaSeleccionada;
+    TimeSpan? firstAvailableTime = Model.HoraSeleccionada;
+
+    if ((!firstAvailableDate.HasValue || !firstAvailableTime.HasValue) && Model.Agenda != null)
+    {
+        var firstDay = Model.Agenda.FirstOrDefault(d => d.EstaDisponible);
+        if (firstDay is not null)
+        {
+            firstAvailableDate ??= firstDay.Fecha;
+            var firstHour = firstDay.Horas.FirstOrDefault(h => h.Disponible);
+            if (firstHour is not null)
+            {
+                firstAvailableTime ??= firstHour.Hora;
+            }
+        }
+    }
+
+    var minDate = DateTime.Today.AddDays(1);
+    var maxDate = minDate.AddDays(13);
+    var defaultDateValue = firstAvailableDate?.ToString("yyyy-MM-dd") ?? minDate.ToString("yyyy-MM-dd");
+    var defaultTimeValue = firstAvailableTime?.ToString(@"hh\:mm") ?? string.Empty;
+
+    var agendaPayload = (Model.Agenda ?? Enumerable.Empty<CitaFacil.ViewModels.ScheduleDayAvailability>()).Select(day => new
+    {
+        fecha = day.Fecha.ToString("yyyy-MM-dd"),
+        disponible = day.EstaDisponible,
+        horas = day.Horas.Select(h => new { hora = h.Hora.ToString(@"hh\:mm"), disponible = h.Disponible })
+    });
+
+    var agendaJson = JsonSerializer.Serialize(agendaPayload);
+}
+
+<div class="space-y-10">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="space-y-2">
+            <h1 class="text-4xl font-black tracking-[-0.03em] text-gray-900">Elige a tu especialista y horario ideal</h1>
+            <p class="text-sm text-zinc-500">Selecciona a tu doctor de confianza y agenda la cita con el horario que mejor se adapte a tu agenda.</p>
+        </div>
+        <a asp-action="AgendarPaso1"
+           asp-route-citaId="@Model.CitaId"
+           class="inline-flex items-center gap-2 rounded-lg border border-zinc-200 px-4 py-2 text-sm font-semibold text-zinc-600 transition hover:border-primary hover:text-primary">
+            <span class="material-symbols-outlined text-base">arrow_back</span>
+            Cambiar especialidad
+        </a>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <div class="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+            <span class="material-symbols-outlined text-base">info</span>
+            <span>@errorMessage</span>
+        </div>
+    }
+
+    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+        <aside class="space-y-4">
+            <h2 class="text-xl font-semibold text-gray-900">Doctores disponibles</h2>
+            <div class="flex max-h-[520px] flex-col gap-3 overflow-y-auto pr-1">
+                @foreach (var doctor in Model.Doctores)
+                {
+                    var enlaceClases = doctor.Seleccionado
+                        ? "border-primary ring-2 ring-primary/30"
+                        : "border-transparent hover:border-primary";
+
+                    <a asp-action="AgendarPaso2"
+                       asp-route-especialidadId="@Model.EspecialidadId"
+                       asp-route-doctorId="@doctor.Id"
+                       asp-route-citaId="@Model.CitaId"
+                       class=$"flex items-start gap-4 rounded-xl border bg-white p-4 shadow-sm transition-all {enlaceClases}">
+                        <div class="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+                            <span class="material-symbols-outlined">stethoscope</span>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-base font-semibold text-gray-900">@doctor.NombreCompleto</p>
+                            <p class="text-sm text-zinc-500">@doctor.Especialidad</p>
+                            @if (!string.IsNullOrWhiteSpace(doctor.Resumen))
+                            {
+                                <p class="mt-1 text-xs text-zinc-400">@doctor.Resumen</p>
+                            }
+                        </div>
+                        <span class=$"inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold @(doctor.Seleccionado ? "bg-primary text-white" : "bg-primary/10 text-primary")">
+                            <span class="material-symbols-outlined text-sm">@((doctor.Seleccionado) ? "radio_button_checked" : "radio_button_unchecked")</span>
+                            @(doctor.Seleccionado ? "Seleccionado" : "Elegir")
+                        </span>
+                    </a>
+                }
+            </div>
+        </aside>
+
+        <section class="space-y-6 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+            @if (Model.DoctorSeleccionado is not null && Model.DoctorSeleccionadoId.HasValue)
+            {
+                <header class="flex flex-wrap items-start justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <div class="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-primary/15 text-2xl font-bold text-primary">
+                            @if (!string.IsNullOrWhiteSpace(Model.DoctorSeleccionado.FotoUrl))
+                            {
+                                <img src="@Model.DoctorSeleccionado.FotoUrl" alt="Foto profesional" class="h-full w-full object-cover" />
+                            }
+                            else
+                            {
+                                @(Model.DoctorSeleccionado.NombreCompleto.Length >= 2
+                                    ? Model.DoctorSeleccionado.NombreCompleto[..2].ToUpperInvariant()
+                                    : Model.DoctorSeleccionado.NombreCompleto[..1].ToUpperInvariant())
+                            }
+                        </div>
+                        <div class="space-y-1">
+                            <h2 class="text-2xl font-bold text-gray-900">@Model.DoctorSeleccionado.NombreCompleto</h2>
+                            <p class="text-sm text-zinc-500">Especialidad en @Model.DoctorSeleccionado.Especialidad</p>
+                            @if (!string.IsNullOrWhiteSpace(Model.DoctorSeleccionado.Consultorio))
+                            {
+                                <p class="text-xs text-zinc-400">Consultorio: @Model.DoctorSeleccionado.Consultorio</p>
+                            }
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end gap-2 text-xs text-zinc-500">
+                        @if (!string.IsNullOrWhiteSpace(Model.DoctorSeleccionado.TelefonoContacto))
+                        {
+                            <span class="inline-flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm">call</span>
+                                @Model.DoctorSeleccionado.TelefonoContacto
+                            </span>
+                        }
+                    </div>
+                </header>
+
+                <div class="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-500">
+                    Selecciona la fecha y el horario que prefieras. Las citas deben agendarse con al menos un día de anticipación.
+                </div>
+
+                @if (Model.CitaId.HasValue)
+                {
+                    <div class="rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-700">
+                        Estás reprogramando una cita existente. Confirma el nuevo horario antes de continuar.
+                    </div>
+                }
+
+                <div class="grid gap-6 md:grid-cols-[minmax(0,1fr)_1fr]">
+                    <div class="space-y-3">
+                        <label class="flex flex-col gap-2 text-sm text-zinc-600">
+                            Fecha disponible
+                            <input id="date-selector"
+                                   type="date"
+                                   min="@minDate:yyyy-MM-dd"
+                                   max="@maxDate:yyyy-MM-dd"
+                                   value="@defaultDateValue"
+                                   class="h-12 rounded-xl border border-zinc-200 bg-white px-4 text-sm text-zinc-700 shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                        </label>
+                        <div class="rounded-xl border border-zinc-200 bg-white p-3 text-xs text-zinc-500">
+                            El listado de horarios se actualizará automáticamente cuando cambies de fecha.
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <p class="text-sm font-semibold text-zinc-700">Horarios disponibles</p>
+                        <div id="time-slot-container" class="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-4"></div>
+                        <p id="time-slot-empty" class="hidden rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-700">
+                            No encontramos horarios para la fecha seleccionada. Intenta con otro día.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-between gap-3 border-t border-zinc-200 pt-6">
+                    <a asp-action="AgendarPaso1"
+                       asp-route-citaId="@Model.CitaId"
+                       class="inline-flex items-center gap-2 rounded-lg border border-zinc-200 px-4 py-2 text-sm font-semibold text-zinc-600 transition hover:border-primary hover:text-primary">
+                        <span class="material-symbols-outlined text-base">arrow_back</span>
+                        Paso anterior
+                    </a>
+
+                    <button type="button"
+                            id="continue-button"
+                            class="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-dark disabled:pointer-events-none disabled:bg-zinc-300">
+                        Continuar
+                        <span class="material-symbols-outlined text-base">arrow_forward</span>
+                    </button>
+                </div>
+            }
+            else
+            {
+                <div class="flex h-full flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-zinc-300 bg-zinc-50 p-8 text-center">
+                    <span class="material-symbols-outlined text-4xl text-zinc-400">stethoscope</span>
+                    <p class="text-lg font-semibold text-gray-900">Selecciona un doctor para ver sus horarios disponibles</p>
+                </div>
+            }
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const container = document.getElementById('time-slot-container');
+            const emptyState = document.getElementById('time-slot-empty');
+            const dateSelector = document.getElementById('date-selector');
+            const continueButton = document.getElementById('continue-button');
+
+            if (!container || !dateSelector || !continueButton) {
+                return;
+            }
+
+            const agenda = @Html.Raw(agendaJson);
+            const doctorIdValue = '@(Model.DoctorSeleccionadoId?.ToString() ?? string.Empty)';
+            const especialidadIdValue = '@Model.EspecialidadId';
+            const citaIdValue = '@(Model.CitaId?.ToString() ?? string.Empty)';
+            const step3BaseUrl = '@Url.Action("AgendarPaso3", new { especialidadId = Model.EspecialidadId, doctorId = Model.DoctorSeleccionadoId, citaId = Model.CitaId })';
+            let selectedDate = dateSelector.value;
+            let selectedTime = '@defaultTimeValue';
+
+            function renderTimeSlots(dateValue) {
+                const day = agenda.find(d => d.fecha === dateValue);
+                container.innerHTML = '';
+                const previousSelection = selectedTime;
+                selectedTime = '';
+
+                if (!day || !day.disponible) {
+                    showEmptyState(true);
+                    updateContinueState();
+                    return;
+                }
+
+                const availableHours = day.horas.filter(h => h.disponible);
+                if (availableHours.length === 0) {
+                    showEmptyState(true);
+                    updateContinueState();
+                    return;
+                }
+
+                availableHours.forEach(hour => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'inline-flex items-center justify-center rounded-lg border border-zinc-200 px-4 py-2 text-sm font-semibold text-zinc-600 transition hover:border-primary hover:text-primary';
+                    button.textContent = hour.hora;
+                    button.addEventListener('click', () => {
+                        selectedTime = hour.hora;
+                        container.querySelectorAll('button').forEach(btn => btn.classList.remove('border-primary', 'bg-primary', 'text-white'));
+                        button.classList.add('border-primary', 'bg-primary', 'text-white');
+                        updateContinueState();
+                    });
+                    container.appendChild(button);
+                });
+
+                if (previousSelection && availableHours.some(h => h.hora === previousSelection)) {
+                    selectedTime = previousSelection;
+                    container.querySelectorAll('button').forEach(btn => {
+                        if (btn.textContent === selectedTime) {
+                            btn.classList.add('border-primary', 'bg-primary', 'text-white');
+                        }
+                    });
+                }
+
+                showEmptyState(false);
+                updateContinueState();
+            }
+
+            function showEmptyState(show) {
+                if (!emptyState) {
+                    return;
+                }
+                emptyState.classList.toggle('hidden', !show);
+            }
+
+            function updateContinueState() {
+                continueButton.disabled = !(selectedDate && selectedTime);
+            }
+
+            dateSelector.addEventListener('change', function () {
+                selectedDate = this.value;
+                renderTimeSlots(selectedDate);
+            });
+
+            continueButton.addEventListener('click', function () {
+                if (!(selectedDate && selectedTime)) {
+                    return;
+                }
+
+                const targetUrl = new URL(step3BaseUrl, window.location.origin);
+                if (doctorIdValue) {
+                    targetUrl.searchParams.set('doctorId', doctorIdValue);
+                }
+                targetUrl.searchParams.set('especialidadId', especialidadIdValue.toString());
+                targetUrl.searchParams.set('fecha', selectedDate);
+                targetUrl.searchParams.set('hora', selectedTime);
+                if (citaIdValue) {
+                    targetUrl.searchParams.set('citaId', citaIdValue);
+                }
+                window.location.href = targetUrl.toString();
+            });
+
+            renderTimeSlots(selectedDate);
+            updateContinueState();
+        });
+    </script>
+}
+

@@ -1,0 +1,49 @@
+﻿/* Estilo para los íconos de Google (opcional, para que se vean "rellenos") */
+.material-symbols-outlined.filled {
+    font-variation-settings: 'FILL' 1;
+}
+
+/* Estilo simple para la barra de scroll en el área de contenido */
+main::-webkit-scrollbar {
+    width: 8px;
+}
+
+main::-webkit-scrollbar-thumb {
+    background-color: #89CFF0; /* Color primario */
+    border-radius: 10px;
+}
+
+main::-webkit-scrollbar-track {
+    background-color: #f0f4f8; /* Color secundario */
+}
+
+/* Sidebar Styles */
+.sidebar-expanded {
+    width: 256px;
+}
+
+.sidebar-collapsed {
+    width: 80px;
+}
+
+.sidebar-collapsed .sidebar-text {
+    display: none;
+}
+
+.main-content-expanded {
+    margin-left: 0;
+}
+
+.main-content-collapsed {
+    margin-left: 0;
+}
+
+@media (min-width: 1024px) {
+    .sidebar-expanded {
+        width: 256px;
+    }
+    
+    .sidebar-collapsed {
+        width: 80px;
+    }
+}

@@ -1,0 +1,102 @@
+﻿@{
+    // 1. Usa el layout de Doctor
+    Layout = "_DoctorLayout";
+    ViewData["Title"] = "Calendario";
+}
+
+<!-- Título de la Página -->
+<div class="mb-8">
+    <h1 class="text-4xl font-black tracking-tighter text-text-light dark:text-text-dark">
+        Tu Calendario
+    </h1>
+    <p class="text-lg text-zinc-500 dark:text-zinc-400">
+        Revisa todas tus citas programadas.
+    </p>
+</div>
+
+<!--
+    2. Este es el Div donde FullCalendar se renderizará.
+    Lo he envuelto en una tarjeta con el mismo estilo de tus otras páginas.
+-->
+<div id="calendar-container" class="bg-white dark:bg-zinc-800 p-4 sm:p-6 rounded-lg shadow-md">
+    <!-- Mensaje de carga, se ocultará cuando el calendario esté listo -->
+    <div id="calendar-loading" class="text-center p-10">
+        <p class="text-lg text-zinc-500">Cargando calendario...</p>
+    </div>
+
+    <!-- El calendario -->
+    <div id="calendar" style="visibility: hidden;"></div>
+</div>
+
+
+<!--
+    3. Carga de los scripts de FullCalendar y la inicialización.
+-->
+@section Scripts {
+    <!-- Carga de la librería FullCalendar desde la CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.14/index.global.min.js"></script>
+
+    <!-- Nuestro script para inicializar el calendario -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var loadingEl = document.getElementById('calendar-loading');
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                // --- Vistas ---
+                initialView: 'timeGridWeek', // Vista de semana es la más útil para un doctor
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek' // Vistas disponibles
+                },
+                buttonText: {
+                    today: 'Hoy',
+                    month: 'Mes',
+                    week: 'Semana',
+                    day: 'Día',
+                    list: 'Agenda'
+                },
+
+                // --- Configuración Regional y Horaria ---
+                locale: 'es', // ¡Importante! Pone el calendario en español
+                slotMinTime: '08:00:00', // Horario de inicio
+                slotMaxTime: '20:00:00', // Horario de fin
+                allDaySlot: false, // No mostrar la ranura de "todo el día"
+                height: 'auto', // Ajusta la altura al contenedor
+
+                // --- Eventos (¡La parte clave!) ---
+                events: {
+                    // 4. Esta es la URL de la acción que creamos en el controlador
+                    url: '/Doctor/GetCitasJson',
+                    failure: function() {
+                        showAppAlert({
+                            icon: 'error',
+                            title: 'No se pudo cargar el calendario',
+                            text: 'Hubo un error al cargar las citas.'
+                        });
+                    }
+                },
+
+                // --- Feedback Visual ---
+                loading: function(isLoading) {
+                    if (isLoading) {
+                        // Muestra el mensaje de carga
+                        calendarEl.style.visibility = 'hidden';
+                        loadingEl.style.display = 'block';
+                    } else {
+                        // Oculta el mensaje y muestra el calendario
+                        loadingEl.style.display = 'none';
+                        calendarEl.style.visibility = 'visible';
+                    }
+                }
+
+                // (Opcional) Puedes agregar más interacciones aquí,
+                // como 'eventClick' para mostrar un modal con detalles.
+            });
+
+            // 5. Renderizar el calendario
+            calendar.render();
+        });
+    </script>
+}

@@ -1,0 +1,92 @@
+<!-- Modal para crear nueva cita -->
+<div id="modal-crear-cita" class="flex min-h-screen w-full flex-col items-center justify-center p-4 fixed inset-0 z-[9999] hidden bg-black bg-opacity-50">
+    <!-- Modal -->
+    <div class="relative w-full max-w-2xl bg-white dark:bg-background-dark rounded-xl shadow-2xl overflow-hidden">
+        <div class="flex flex-col">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex flex-col gap-1">
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">Nueva Cita Médica</h2>
+                    <p class="text-sm font-normal text-gray-500 dark:text-gray-400">Rellena los siguientes campos para agendar una nueva cita.</p>
+                </div>
+                <button id="btn-cerrar-crear" class="p-1 rounded-full text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/50">
+                    <span aria-hidden="true" class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+                <!-- Modal Body -->
+                <form id="form-crear-cita" class="p-6 space-y-6">
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <label class="flex flex-col w-full">
+                            <p class="text-sm font-medium leading-normal pb-2 text-gray-800 dark:text-gray-200">Paciente</p>
+                            <div class="relative flex items-center">
+                                <span class="material-symbols-outlined absolute left-4 text-gray-400 dark:text-gray-500">person</span>
+                                <select id="paciente-select" name="paciente_id" class="form-select appearance-none flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800/50 focus:border-primary h-12 pl-11 pr-10 text-base font-normal leading-normal" required>
+                                    <option value="">Selecciona un paciente</option>
+                                </select>
+                                <span class="material-symbols-outlined absolute right-4 text-gray-400 dark:text-gray-500 pointer-events-none">unfold_more</span>
+                            </div>
+                        </label>
+
+                        <label class="flex flex-col w-full">
+                            <p class="text-sm font-medium leading-normal pb-2 text-gray-800 dark:text-gray-200">Duración (minutos)</p>
+                            <div class="relative flex items-center">
+                                <span class="material-symbols-outlined absolute left-4 text-gray-400 dark:text-gray-500">schedule</span>
+                                <select name="duracion_minutos" class="form-select appearance-none flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800/50 focus:border-primary h-12 pl-11 pr-10 text-base font-normal leading-normal">
+                                    <option value="15">15 minutos</option>
+                                    <option value="30" selected>30 minutos</option>
+                                    <option value="45">45 minutos</option>
+                                    <option value="60">1 hora</option>
+                                    <option value="90">1.5 horas</option>
+                                    <option value="120">2 horas</option>
+                                </select>
+                                <span class="material-symbols-outlined absolute right-4 text-gray-400 dark:text-gray-500 pointer-events-none">unfold_more</span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <label class="flex flex-col w-full">
+                            <p class="text-sm font-medium leading-normal pb-2 text-gray-800 dark:text-gray-200">Fecha</p>
+                            <div class="relative flex items-center">
+                                <span class="material-symbols-outlined absolute left-4 text-gray-400 dark:text-gray-500">calendar_today</span>
+                                <input name="fecha" type="date" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800/50 focus:border-primary h-12 placeholder:text-gray-400 dark:placeholder:text-gray-500 pl-11 pr-4 text-base font-normal leading-normal" required />
+                            </div>
+                        </label>
+
+                        <label class="flex flex-col w-full">
+                            <p class="text-sm font-medium leading-normal pb-2 text-gray-800 dark:text-gray-200">Hora</p>
+                            <div class="relative flex items-center">
+                                <span class="material-symbols-outlined absolute left-4 text-gray-400 dark:text-gray-500">schedule</span>
+                                <input name="hora" type="time" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800/50 focus:border-primary h-12 placeholder:text-gray-400 dark:placeholder:text-gray-500 pl-11 pr-4 text-base font-normal leading-normal" required />
+                            </div>
+                        </label>
+                    </div>
+
+                    <label class="flex flex-col w-full">
+                        <p class="text-sm font-medium leading-normal pb-2 text-gray-800 dark:text-gray-200">Motivo de la Consulta</p>
+                        <textarea name="motivo" class="form-textarea flex w-full min-w-0 flex-1 resize-y overflow-hidden rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800/50 focus:border-primary min-h-28 placeholder:text-gray-400 dark:placeholder:text-gray-500 p-4 text-base font-normal leading-normal" placeholder="Describe brevemente el motivo de la cita"></textarea>
+                    </label>
+
+                    <label class="flex flex-col w-full">
+                        <p class="text-sm font-medium leading-normal pb-2 text-gray-800 dark:text-gray-200">Notas Adicionales</p>
+                        <textarea name="notas" class="form-textarea flex w-full min-w-0 flex-1 resize-y overflow-hidden rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800/50 focus:border-primary min-h-20 placeholder:text-gray-400 dark:placeholder:text-gray-500 p-4 text-base font-normal leading-normal" placeholder="Notas internas para la cita"></textarea>
+                    </label>
+                </form>
+
+                <!-- Modal Footer -->
+                <div class="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 p-6 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700">
+                    <button type="button" id="btn-cancelar-crear" class="w-full sm:w-auto flex items-center justify-center px-4 py-2.5 rounded-lg text-sm font-semibold text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-primary/50">
+                        Cancelar
+                    </button>
+                    <button type="submit" form="form-crear-cita" class="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50">
+                        <span class="material-symbols-outlined text-base">save</span>
+                        Guardar Cita
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
