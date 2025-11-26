@@ -83,16 +83,15 @@ wwwroot\uploads\avatars\b0b42fa0ee274dddb6262318e549754b.png
 wwwroot\uploads\avatars\ca2e1b46105c43119a785430ce99a103.png
 wwwroot\uploads\avatars\d8b0ee87f037481b86370938b6e8c342.png
 wwwroot\uploads\avatars\eb5937964f9c4bd4baa0959742983088.png
+C:\Users\bryan\Downloads\CitaFacil\CitaFacil\wwwroot\js\fullcalendar.es.global.min.js
 C:\Users\bryan\Downloads\CitaFacil\CitaFacil\wwwroot\css\admin-style.css
 C:\Users\bryan\Downloads\CitaFacil\CitaFacil\wwwroot\css\landing-style.css
-C:\Users\bryan\Downloads\CitaFacil\CitaFacil\wwwroot\css\login-style.css
+C:\Users\bryan\Downloads\CitaFacil\CitaFacil\wwwroot\js\admin-layout.js
 C:\Users\bryan\Downloads\CitaFacil\CitaFacil\wwwroot\css\site.css
 C:\Users\bryan\Downloads\CitaFacil\CitaFacil\wwwroot\css\tailwind-custom.css
 C:\Users\bryan\Downloads\CitaFacil\CitaFacil\wwwroot\favicon.ico
 C:\Users\bryan\Downloads\CitaFacil\CitaFacil\wwwroot\js\app-core.js
 C:\Users\bryan\Downloads\CitaFacil\CitaFacil\wwwroot\js\calendar-modals.js
-C:\Users\bryan\Downloads\CitaFacil\CitaFacil\wwwroot\js\fullcalendar.es.global.min.js
-C:\Users\bryan\Downloads\CitaFacil\CitaFacil\wwwroot\js\fullcalendar.index.global.min.js
 C:\Users\bryan\Downloads\CitaFacil\CitaFacil\wwwroot\js\landing-script.js
 C:\Users\bryan\Downloads\CitaFacil\CitaFacil\wwwroot\js\site.js
 C:\Users\bryan\Downloads\CitaFacil\CitaFacil\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css
@@ -154,5 +153,6 @@ C:\Users\bryan\Downloads\CitaFacil\CitaFacil\wwwroot\lib\jquery\dist\jquery.slim
 C:\Users\bryan\Downloads\CitaFacil\CitaFacil\wwwroot\lib\jquery\dist\jquery.slim.min.js
 C:\Users\bryan\Downloads\CitaFacil\CitaFacil\wwwroot\lib\jquery\dist\jquery.slim.min.map
 C:\Users\bryan\Downloads\CitaFacil\CitaFacil\wwwroot\lib\jquery\LICENSE.txt
-C:\Users\bryan\Downloads\CitaFacil\CitaFacil\wwwroot\js\admin-layout.js
 C:\Users\bryan\Downloads\CitaFacil\CitaFacil\wwwroot\js\backup-config.js
+C:\Users\bryan\Downloads\CitaFacil\CitaFacil\wwwroot\css\login-style.css
+C:\Users\bryan\Downloads\CitaFacil\CitaFacil\wwwroot\js\fullcalendar.index.global.min.js

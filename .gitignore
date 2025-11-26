@@ -1,0 +1,26 @@
+# Archivos de usuario de Visual Studio
+*.user
+*.userosscache
+*.sln.docstates
+
+# Archivos temporales de compilación
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+
+# Archivos de Visual Studio Code
+.vscode/
+
+# Archivos de caché de Visual Studio
+.vs/
+*.suo
+
+# Archivos de Node.js (si usas npm para Tailwind)
+node_modules/
+
+# Archivos de sistema y backups
+Thumbs.db
+.DS_Store
+*.bak
+*.log

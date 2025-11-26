@@ -704,3 +704,4 @@ C:\Users\bryan\Downloads\CitaFacil\CitaFacil\obj\Debug\net9.0\compressed\7b6v5wn
 C:\Users\bryan\Downloads\CitaFacil\CitaFacil\obj\Debug\net9.0\compressed\hp6dajmgl7-d4c0y9mufp.gz
 C:\Users\bryan\Downloads\CitaFacil\CitaFacil\obj\Debug\net9.0\compressed\v7iqdvacqv-aszdlke6xw.gz
 C:\Users\bryan\Downloads\CitaFacil\CitaFacil\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt
+C:\Users\bryan\Downloads\CitaFacil\CitaFacil\obj\Debug\net9.0\CitaFacil.sourcelink.json

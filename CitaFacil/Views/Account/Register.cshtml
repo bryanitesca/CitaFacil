@@ -3,131 +3,152 @@
 @{
     Layout = "_LoginLayout";
     ViewData["Title"] = "Crear cuenta";
+    // ESTA LÍNEA ES LA CLAVE PARA QUE SE VEA ANCHO:
+    ViewData["UseWideLayout"] = true;
 }
 
-<div class="mx-auto flex min-h-screen w-full max-w-6xl flex-col justify-center px-6 py-10 lg:px-0 register-shell">
-    <div class="grid w-full grid-cols-1 gap-8 rounded-3xl border border-zinc-200 bg-white p-8 shadow-xl lg:grid-cols-[1.05fr_1fr] lg:p-12 register-card">
-        <aside class="flex flex-col justify-between gap-10 rounded-2xl bg-gradient-to-br from-primary/10 via-white to-white p-8 register-card-aside">
-            <div class="space-y-6">
-                <a asp-controller="Home" asp-action="Index" class="inline-flex items-center gap-3 text-primary hover:text-primary-dark">
-                    <img src="~/logo_cita.png" alt="CitaFácil" class="h-12 w-12 rounded-xl bg-white p-2 shadow-md" />
-                    <span class="text-2xl font-black tracking-tight">CitaFácil</span>
-                </a>
-                <div class="space-y-4">
-                    <h1 class="text-4xl font-black leading-tight tracking-tight text-zinc-900">Crea tu cuenta en minutos</h1>
-                    <p class="text-base text-zinc-600">
-                        Organiza tus citas, consulta historiales y recibe notificaciones internas personalizadas. Empieza hoy mismo.
-                    </p>
+<div class="grid w-full grid-cols-1 gap-0 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl lg:grid-cols-[1fr_1.2fr]">
+
+    <aside class="relative flex flex-col justify-between bg-gradient-to-br from-sky-100 to-white p-10 lg:p-12">
+        <div class="space-y-8">
+            <a asp-controller="Home" asp-action="Index" class="inline-flex items-center gap-3">
+                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-white text-primary shadow-sm">
+                    <span class="material-symbols-outlined text-3xl">health_and_safety</span>
                 </div>
-                <dl class="grid grid-cols-1 gap-4 text-sm text-zinc-600 lg:grid-cols-2">
-                    <div class="rounded-xl bg-white/70 p-4 shadow-sm backdrop-blur">
-                        <dt class="text-xs font-semibold uppercase tracking-wide text-primary">Sencillo</dt>
-                        <dd class="mt-2 leading-relaxed">Un registro en dos secciones para que no pierdas tiempo.</dd>
-</div>
-                    <div class="rounded-xl bg-white/70 p-4 shadow-sm backdrop-blur">
-                        <dt class="text-xs font-semibold uppercase tracking-wide text-primary">Confiable</dt>
-                        <dd class="mt-2 leading-relaxed">Tu información se mantiene protegida en todo momento.</dd>
-    </div>
-                </dl>
-</div>
+                <span class="text-2xl font-black tracking-tight text-slate-800">CitaFácil</span>
+            </a>
 
-            <p class="text-sm text-zinc-500">
-                ¿Ya tienes cuenta?
-                <a asp-action="Login" class="font-semibold text-primary hover:underline">Inicia sesión aquí</a>
-            </p>
-        </aside>
+            <div class="space-y-4">
+                <h1 class="text-4xl font-black leading-tight text-slate-900 lg:text-5xl">
+                    Tu salud,<br />
+                    <span class="text-primary">simplificada.</span>
+                </h1>
+                <p class="text-lg text-slate-600">
+                    Crea tu expediente digital y gestiona tus citas médicas de manera rápida y segura.
+                </p>
+            </div>
 
-        <section class="flex flex-col justify-center rounded-2xl bg-white p-6 shadow-sm ring-1 ring-primary/10 register-card-form">
-            <header class="mb-6 space-y-2 text-center">
-                <p class="text-sm font-semibold uppercase tracking-wide text-primary">Registro de paciente</p>
-                <h2 class="text-2xl font-bold text-zinc-900">Cuéntanos sobre ti</h2>
-                <p class="text-sm text-zinc-500">Usaremos esta información para preparar tu expediente y personalizar tu experiencia.</p>
-            </header>
+            <div class="space-y-4 pt-4">
+                <div class="flex items-center gap-4 rounded-2xl bg-white/60 p-4 backdrop-blur-sm">
+                    <div class="rounded-full bg-blue-100 p-2 text-primary">
+                        <span class="material-symbols-outlined text-xl">calendar_month</span>
+                    </div>
+                    <div>
+                        <p class="font-bold text-slate-800">Agenda 24/7</p>
+                        <p class="text-xs text-slate-500">Sin llamadas, todo en línea.</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4 rounded-2xl bg-white/60 p-4 backdrop-blur-sm">
+                    <div class="rounded-full bg-blue-100 p-2 text-primary">
+                        <span class="material-symbols-outlined text-xl">notifications_active</span>
+                    </div>
+                    <div>
+                        <p class="font-bold text-slate-800">Recordatorios</p>
+                        <p class="text-xs text-slate-500">Nunca olvides una consulta.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-            <form asp-controller="Account" asp-action="Register" method="post" class="space-y-6">
-    @Html.AntiForgeryToken()
+        <div class="mt-10 text-sm text-slate-500">
+            &copy; @DateTime.Now.Year CitaFácil. Todos los derechos reservados.
+        </div>
+    </aside>
 
-                <div asp-validation-summary="ModelOnly" class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"></div>
+    <main class="flex flex-col justify-center p-8 lg:p-14 bg-white">
+        <div class="mx-auto w-full max-w-lg space-y-8">
+            <div class="text-center lg:text-left">
+                <h2 class="text-2xl font-bold text-slate-900">Registro de Paciente</h2>
+                <p class="mt-1 text-slate-500">
+                    ¿Ya tienes cuenta?
+                    <a asp-action="Login" class="font-medium text-primary hover:text-primary-dark hover:underline">Inicia sesión</a>
+                </p>
+            </div>
 
-                <div class="rounded-2xl border border-zinc-200 p-5">
-                    <h3 class="text-sm font-semibold uppercase tracking-wide text-zinc-500">Datos personales</h3>
-                    <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <label asp-for="nombre" class="flex flex-col gap-2">
-                            <span class="text-sm font-medium text-zinc-700">Nombre(s) *</span>
-                            <input asp-for="nombre" autocomplete="given-name" class="form-input h-11 rounded-xl border-zinc-200 bg-zinc-50 focus:border-primary focus:ring-primary" placeholder="María Fernanda" />
+            <form asp-action="Register" method="post" class="space-y-6">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-600"></div>
+
+                <div class="space-y-5">
+                    <h3 class="flex items-center text-xs font-bold uppercase tracking-wider text-slate-400">
+                        <span class="mr-2 h-px w-4 bg-slate-300"></span> Información Personal
+                    </h3>
+                    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                        <div class="space-y-1">
+                            <label asp-for="nombre" class="text-sm font-medium text-slate-700">Nombre(s) *</label>
+                            <input asp-for="nombre" class="form-input h-11 w-full rounded-xl border-slate-200 bg-slate-50 focus:border-primary focus:bg-white focus:ring-primary" placeholder="Ej. Ana" />
                             <span asp-validation-for="nombre" class="text-xs text-red-500"></span>
-        </label>
-        <label asp-for="apellido" class="flex flex-col gap-2">
-                            <span class="text-sm font-medium text-zinc-700">Apellido paterno *</span>
-                            <input asp-for="apellido" autocomplete="family-name" class="form-input h-11 rounded-xl border-zinc-200 bg-zinc-50 focus:border-primary focus:ring-primary" placeholder="García" />
+                        </div>
+                        <div class="space-y-1">
+                            <label asp-for="apellido" class="text-sm font-medium text-slate-700">Apellido Paterno *</label>
+                            <input asp-for="apellido" class="form-input h-11 w-full rounded-xl border-slate-200 bg-slate-50 focus:border-primary focus:bg-white focus:ring-primary" placeholder="Ej. Pérez" />
                             <span asp-validation-for="apellido" class="text-xs text-red-500"></span>
-        </label>
-                        <label asp-for="segundo_apellido" class="flex flex-col gap-2 sm:col-span-2 lg:col-span-1">
-                            <span class="text-sm font-medium text-zinc-700">Segundo apellido (opcional)</span>
-                            <input asp-for="segundo_apellido" class="form-input h-11 rounded-xl border-zinc-200 bg-zinc-50 focus:border-primary focus:ring-primary" placeholder="Luna" />
-                            <span asp-validation-for="segundo_apellido" class="text-xs text-red-500"></span>
-        </label>
-        <label asp-for="fecha_nacimiento" class="flex flex-col gap-2">
-                            <span class="text-sm font-medium text-zinc-700">Fecha de nacimiento *</span>
-                            <input asp-for="fecha_nacimiento" type="date" class="form-input h-11 rounded-xl border-zinc-200 bg-zinc-50 focus:border-primary focus:ring-primary" />
+                        </div>
+                        <div class="space-y-1">
+                            <label asp-for="segundo_apellido" class="text-sm font-medium text-slate-700">Apellido Materno</label>
+                            <input asp-for="segundo_apellido" class="form-input h-11 w-full rounded-xl border-slate-200 bg-slate-50 focus:border-primary focus:bg-white focus:ring-primary" />
+                        </div>
+                        <div class="space-y-1">
+                            <label asp-for="fecha_nacimiento" class="text-sm font-medium text-slate-700">Fecha Nacimiento *</label>
+                            <input asp-for="fecha_nacimiento" type="date" class="form-input h-11 w-full rounded-xl border-slate-200 bg-slate-50 focus:border-primary focus:bg-white focus:ring-primary" />
                             <span asp-validation-for="fecha_nacimiento" class="text-xs text-red-500"></span>
-        </label>
-        <label asp-for="genero" class="flex flex-col gap-2">
-                            <span class="text-sm font-medium text-zinc-700">Género (opcional)</span>
-                            <select asp-for="genero" class="form-select h-11 rounded-xl border-zinc-200 bg-zinc-50 focus:border-primary focus:ring-primary">
-                <option value="">Seleccionar</option>
-                <option value="Femenino">Femenino</option>
-                <option value="Masculino">Masculino</option>
-                <option value="Otro">Otro</option>
-            </select>
-                            <span asp-validation-for="genero" class="text-xs text-red-500"></span>
-                        </label>
-                        <label asp-for="celular" class="flex flex-col gap-2">
-                            <span class="text-sm font-medium text-zinc-700">Teléfono móvil (opcional)</span>
-                            <input asp-for="celular" autocomplete="tel" class="form-input h-11 rounded-xl border-zinc-200 bg-zinc-50 focus:border-primary focus:ring-primary" placeholder="644 123 4567" />
-                            <span asp-validation-for="celular" class="text-xs text-red-500"></span>
-                        </label>
-                        <label asp-for="direccion" class="sm:col-span-2 flex flex-col gap-2">
-                            <span class="text-sm font-medium text-zinc-700">Dirección (opcional)</span>
-                            <textarea asp-for="direccion" rows="2" class="form-textarea rounded-xl border-zinc-200 bg-zinc-50 focus:border-primary focus:ring-primary" placeholder="Calle, número, colonia, ciudad"></textarea>
-                            <span asp-validation-for="direccion" class="text-xs text-red-500"></span>
-        </label>
-                    </div>
-    </div>
-
-                <div class="rounded-2xl border border-zinc-200 p-5">
-                    <h3 class="text-sm font-semibold uppercase tracking-wide text-zinc-500">Acceso a la plataforma</h3>
-                    <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <label asp-for="usuario" class="flex flex-col gap-2">
-                            <span class="text-sm font-medium text-zinc-700">Nombre de usuario *</span>
-                            <input asp-for="usuario" autocomplete="username" class="form-input h-11 rounded-xl border-zinc-200 bg-zinc-50 focus:border-primary focus:ring-primary" placeholder="usuario123" />
-                            <span asp-validation-for="usuario" class="text-xs text-red-500"></span>
-                        </label>
-                        <label asp-for="correo" class="flex flex-col gap-2">
-                            <span class="text-sm font-medium text-zinc-700">Correo electrónico *</span>
-                            <input asp-for="correo" autocomplete="email" class="form-input h-11 rounded-xl border-zinc-200 bg-zinc-50 focus:border-primary focus:ring-primary" placeholder="correo@ejemplo.com" />
-                            <span asp-validation-for="correo" class="text-xs text-red-500"></span>
-                        </label>
-                        <label asp-for="contraseña" class="flex flex-col gap-2">
-                            <span class="text-sm font-medium text-zinc-700">Contraseña *</span>
-                            <input asp-for="contraseña" type="password" autocomplete="new-password" class="form-input h-11 rounded-xl border-zinc-200 bg-zinc-50 focus:border-primary focus:ring-primary" placeholder="••••••••" />
-                            <span asp-validation-for="contraseña" class="text-xs text-red-500"></span>
-                        </label>
-                        <label asp-for="confirmar_contraseña" class="flex flex-col gap-2">
-                            <span class="text-sm font-medium text-zinc-700">Confirmar contraseña *</span>
-                            <input asp-for="confirmar_contraseña" type="password" autocomplete="new-password" class="form-input h-11 rounded-xl border-zinc-200 bg-zinc-50 focus:border-primary focus:ring-primary" placeholder="••••••••" />
-                            <span asp-validation-for="confirmar_contraseña" class="text-xs text-red-500"></span>
-    </label>
+                        </div>
+                        <div class="space-y-1 sm:col-span-2">
+                            <label asp-for="genero" class="text-sm font-medium text-slate-700">Género</label>
+                            <select asp-for="genero" class="form-select h-11 w-full rounded-xl border-slate-200 bg-slate-50 focus:border-primary focus:bg-white focus:ring-primary">
+                                <option value="">Seleccione...</option>
+                                <option value="Femenino">Femenino</option>
+                                <option value="Masculino">Masculino</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
-                <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-3 text-base font-semibold text-white shadow-lg transition hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
-                    <span class="material-symbols-outlined text-lg">how_to_reg</span>
-                    Crear cuenta
-        </button>
+                <div class="space-y-5 pt-2">
+                    <h3 class="flex items-center text-xs font-bold uppercase tracking-wider text-slate-400">
+                        <span class="mr-2 h-px w-4 bg-slate-300"></span> Datos de Acceso
+                    </h3>
+                    <div class="grid grid-cols-1 gap-5">
+                        <div class="space-y-1">
+                            <label asp-for="correo" class="text-sm font-medium text-slate-700">Correo Electrónico *</label>
+                            <input asp-for="correo" type="email" class="form-input h-11 w-full rounded-xl border-slate-200 bg-slate-50 focus:border-primary focus:bg-white focus:ring-primary" placeholder="nombre@correo.com" />
+                            <span asp-validation-for="correo" class="text-xs text-red-500"></span>
+                        </div>
+                        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                            <div class="space-y-1">
+                                <label asp-for="usuario" class="text-sm font-medium text-slate-700">Usuario *</label>
+                                <input asp-for="usuario" class="form-input h-11 w-full rounded-xl border-slate-200 bg-slate-50 focus:border-primary focus:bg-white focus:ring-primary" />
+                                <span asp-validation-for="usuario" class="text-xs text-red-500"></span>
+                            </div>
+                            <div class="space-y-1">
+                                <label asp-for="celular" class="text-sm font-medium text-slate-700">Celular</label>
+                                <input asp-for="celular" class="form-input h-11 w-full rounded-xl border-slate-200 bg-slate-50 focus:border-primary focus:bg-white focus:ring-primary" />
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                            <div class="space-y-1">
+                                <label asp-for="contraseña" class="text-sm font-medium text-slate-700">Contraseña *</label>
+                                <input asp-for="contraseña" type="password" class="form-input h-11 w-full rounded-xl border-slate-200 bg-slate-50 focus:border-primary focus:bg-white focus:ring-primary" />
+                                <span asp-validation-for="contraseña" class="text-xs text-red-500"></span>
+                            </div>
+                            <div class="space-y-1">
+                                <label asp-for="confirmar_contraseña" class="text-sm font-medium text-slate-700">Confirmar *</label>
+                                <input asp-for="confirmar_contraseña" type="password" class="form-input h-11 w-full rounded-xl border-slate-200 bg-slate-50 focus:border-primary focus:bg-white focus:ring-primary" />
+                                <span asp-validation-for="confirmar_contraseña" class="text-xs text-red-500"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-6">
+                    <button type="submit" class="flex h-12 w-full items-center justify-center rounded-xl bg-primary font-bold text-white shadow-lg shadow-primary/20 transition hover:bg-primary-dark hover:shadow-primary/40 active:scale-[0.98]">
+                        Registrarme
+                    </button>
+                </div>
             </form>
-        </section>
-    </div>
+        </div>
+    </main>
 </div>
 
 @section Scripts {
@@ -135,4 +156,3 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 }
-

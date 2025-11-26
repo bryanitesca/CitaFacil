@@ -3,6 +3,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using CitaFacil.Constants;
 using CitaFacil.Data;
 using CitaFacil.Models;
@@ -15,10 +16,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace CitaFacil.Controllers
 {
-    // ¡MUY IMPORTANTE! Asegura que solo los admins puedan entrar
     [Authorize(Roles = Roles.Administrador)]
     public class AdminController : Controller
     {
@@ -37,7 +38,9 @@ namespace CitaFacil.Controllers
             _logger = logger;
         }
 
-        // Esta es la página principal del Dashboard
+        // ==========================================
+        // DASHBOARD PRINCIPAL
+        // ==========================================
         public async Task<IActionResult> Index()
         {
             var hoy = DateTime.Today;
@@ -119,7 +122,9 @@ namespace CitaFacil.Controllers
             };
         }
 
-        // Vistas prototipo: Gestión de usuarios y Especialidades (sin lógica)
+        // ==========================================
+        // GESTIÓN DE USUARIOS
+        // ==========================================
         public async Task<IActionResult> Usuarios()
         {
             var usuarios = await _context.Usuarios
@@ -144,6 +149,37 @@ namespace CitaFacil.Controllers
             return View(viewModel);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> ToggleUserStatus(long usuarioId)
+        {
+            try
+            {
+                var usuario = await _context.Usuarios.FindAsync(usuarioId);
+                if (usuario == null)
+                {
+                    return Json(new { success = false, message = "Usuario no encontrado" });
+                }
+
+                usuario.activo = !usuario.activo;
+                await _context.SaveChangesAsync();
+
+                return Json(new
+                {
+                    success = true,
+                    message = $"Usuario {(usuario.activo ? "activado" : "desactivado")} correctamente",
+                    newStatus = usuario.activo
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al cambiar estado de usuario");
+                return Json(new { success = false, message = "Error interno del servidor" });
+            }
+        }
+
+        // ==========================================
+        // GESTIÓN DE ESPECIALIDADES
+        // ==========================================
         public async Task<IActionResult> Especialidades()
         {
             var especialidades = await _context.Especialidades
@@ -167,6 +203,9 @@ namespace CitaFacil.Controllers
             return View(viewModel);
         }
 
+        // ==========================================
+        // PROMOVER A DOCTOR
+        // ==========================================
         [HttpGet]
         public async Task<IActionResult> PromoteToDoctor(long id)
         {
@@ -204,11 +243,7 @@ namespace CitaFacil.Controllers
         {
             if (!ModelState.IsValid)
             {
-                var especialidades = await _context.Especialidades
-                    .Where(e => e.activa)
-                    .OrderBy(e => e.nombre)
-                    .ToListAsync();
-                ViewBag.Especialidades = especialidades;
+                ViewBag.Especialidades = await _context.Especialidades.Where(e => e.activa).OrderBy(e => e.nombre).ToListAsync();
                 return View(model);
             }
 
@@ -222,48 +257,31 @@ namespace CitaFacil.Controllers
                 return View(model);
             }
 
-            // Check if doctor with this license already exists
-            var existingDoctor = await _context.Doctores
-                .Where(d => d.licencia == model.licencia)
-                .FirstOrDefaultAsync();
-
+            var existingDoctor = await _context.Doctores.FirstOrDefaultAsync(d => d.licencia == model.licencia);
             if (existingDoctor != null)
             {
-                ModelState.AddModelError("licencia", "Ya existe un doctor con esta licencia profesional.");
-                var especialidades = await _context.Especialidades
-                    .Where(e => e.activa)
-                    .OrderBy(e => e.nombre)
-                    .ToListAsync();
-                ViewBag.Especialidades = especialidades;
+                ModelState.AddModelError("licencia", "Ya existe un doctor con esta licencia.");
+                ViewBag.Especialidades = await _context.Especialidades.Where(e => e.activa).OrderBy(e => e.nombre).ToListAsync();
                 return View(model);
             }
 
             using var transaction = await _context.Database.BeginTransactionAsync();
-            
             try
             {
-                // Upload doctor photo
                 var imageResult = await _imageStorageService.SaveUserAvatarAsync(model.foto, null);
-                
                 if (!imageResult.Success)
                 {
                     ModelState.AddModelError("foto", "Error al subir la imagen: " + imageResult.ErrorMessage);
-                    var especialidades = await _context.Especialidades
-                        .Where(e => e.activa)
-                        .OrderBy(e => e.nombre)
-                        .ToListAsync();
-                    ViewBag.Especialidades = especialidades;
+                    ViewBag.Especialidades = await _context.Especialidades.Where(e => e.activa).OrderBy(e => e.nombre).ToListAsync();
                     return View(model);
                 }
 
-                // Update user role and photo
                 usuario.rol = Roles.Doctor;
                 usuario.foto_url = imageResult.FilePath;
                 usuario.nombre = model.nombre.Trim();
                 usuario.apellido = model.apellido.Trim();
                 usuario.segundo_apellido = string.IsNullOrWhiteSpace(model.segundo_apellido) ? null : model.segundo_apellido.Trim();
 
-                // Create doctor profile
                 var doctor = new Doctor
                 {
                     usuario_id = usuario.id,
@@ -278,20 +296,12 @@ namespace CitaFacil.Controllers
 
                 _context.Doctores.Add(doctor);
 
-                // Remove patient profile if exists
-                var paciente = await _context.Pacientes
-                    .Where(p => p.usuario_id == usuario.id)
-                    .FirstOrDefaultAsync();
-
-                if (paciente != null)
-                {
-                    _context.Pacientes.Remove(paciente);
-                }
+                var paciente = await _context.Pacientes.FirstOrDefaultAsync(p => p.usuario_id == usuario.id);
+                if (paciente != null) _context.Pacientes.Remove(paciente);
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                // Send notification
                 await _notificationService.NotificarPromovcionDoctorAsync(usuario.id, model.especialidad_id);
 
                 TempData["Success"] = $"Usuario {usuario.nombre} promovido a doctor exitosamente.";
@@ -300,24 +310,15 @@ namespace CitaFacil.Controllers
             catch (Exception)
             {
                 await transaction.RollbackAsync();
-                
-                // Clean up uploaded image if something failed
-                if (!string.IsNullOrEmpty(model.foto?.FileName))
-                {
-                    // Image cleanup will be handled by the service
-                }
-
-                ModelState.AddModelError("", "Error al promover el usuario a doctor. Inténtelo de nuevo.");
-                var especialidadesError = await _context.Especialidades
-                    .Where(e => e.activa)
-                    .OrderBy(e => e.nombre)
-                    .ToListAsync();
-                ViewBag.Especialidades = especialidadesError;
+                ModelState.AddModelError("", "Error al promover el usuario.");
+                ViewBag.Especialidades = await _context.Especialidades.Where(e => e.activa).OrderBy(e => e.nombre).ToListAsync();
                 return View(model);
             }
         }
 
-        // CALENDARIO Y GESTIÓN DE CITAS PARA ADMINISTRADOR
+        // ==========================================
+        // CALENDARIO Y CITAS
+        // ==========================================
         [HttpGet]
         public async Task<IActionResult> Calendario()
         {
@@ -331,13 +332,10 @@ namespace CitaFacil.Controllers
             try
             {
                 var citas = await _context.Citas
-                    .Include(c => c.Paciente)
-                    .ThenInclude(p => p.Usuario)
-                    .Include(c => c.Doctor)
-                    .ThenInclude(d => d.Usuario)
+                    .Include(c => c.Paciente).ThenInclude(p => p.Usuario)
+                    .Include(c => c.Doctor).ThenInclude(d => d.Usuario)
                     .Include(c => c.Doctor.Especialidad)
-                    .Where(c => c.fecha >= DateTime.Today.AddMonths(-1) && 
-                               c.fecha <= DateTime.Today.AddMonths(2))
+                    .Where(c => c.fecha >= DateTime.Today.AddMonths(-1) && c.fecha <= DateTime.Today.AddMonths(2))
                     .Select(c => new
                     {
                         id = c.id,
@@ -360,7 +358,7 @@ namespace CitaFacil.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al obtener citas para calendario del administrador");
+                _logger.LogError(ex, "Error obteniendo citas admin");
                 return Json(new List<object>());
             }
         }
@@ -370,39 +368,25 @@ namespace CitaFacil.Controllers
         {
             try
             {
-                var cita = await _context.Citas
-                    .Include(c => c.Paciente)
-                    .Include(c => c.Doctor)
-                    .FirstOrDefaultAsync(c => c.id == citaId);
+                var cita = await _context.Citas.Include(c => c.Paciente).Include(c => c.Doctor).FirstOrDefaultAsync(c => c.id == citaId);
+                if (cita == null) return Json(new { success = false, message = "Cita no encontrada" });
 
-                if (cita == null)
-                {
-                    return Json(new { success = false, message = "Cita no encontrada" });
-                }
-
-                var estadoAnterior = cita.estado;
                 cita.estado = model.Estado;
                 cita.actualizada_el = DateTime.UtcNow;
-
                 await _context.SaveChangesAsync();
 
-                // Notificar al paciente si es necesario
                 if (model.Estado == "CANCELADA")
                 {
                     await _notificationService.NotificarCitaCanceladaAsync(
-                        cita.doctor_id,
-                        cita.paciente_id,
-                        cita.fecha.Add(cita.hora),
-                        model.Motivo ?? "Cancelada por administración"
-                    );
+                        cita.doctor_id, cita.paciente_id, cita.fecha.Add(cita.hora), model.Motivo ?? "Por administración");
                 }
 
-                return Json(new { success = true, message = "Estado actualizado correctamente" });
+                return Json(new { success = true });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al actualizar estado de cita desde admin");
-                return Json(new { success = false, message = "Error interno del servidor" });
+                _logger.LogError(ex, "Error actualizando cita admin");
+                return Json(new { success = false });
             }
         }
 
@@ -411,211 +395,96 @@ namespace CitaFacil.Controllers
         {
             try
             {
-                var cita = await _context.Citas
-                    .Include(c => c.Paciente)
-                    .Include(c => c.Doctor)
-                    .FirstOrDefaultAsync(c => c.id == citaId);
+                var cita = await _context.Citas.Include(c => c.Paciente).Include(c => c.Doctor).FirstOrDefaultAsync(c => c.id == citaId);
+                if (cita == null) return Json(new { success = false });
 
-                if (cita == null)
-                {
-                    return Json(new { success = false, message = "Cita no encontrada" });
-                }
-
-                // Notificar a doctor y paciente
-                await _notificationService.NotificarCitaCanceladaAsync(
-                    cita.doctor_id,
-                    cita.paciente_id,
-                    cita.fecha.Add(cita.hora),
-                    "Cita eliminada por administración"
-                );
-
+                await _notificationService.NotificarCitaCanceladaAsync(cita.doctor_id, cita.paciente_id, cita.fecha.Add(cita.hora), "Cita eliminada por administración");
                 _context.Citas.Remove(cita);
                 await _context.SaveChangesAsync();
 
-                return Json(new { success = true, message = "Cita eliminada correctamente" });
+                return Json(new { success = true });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al eliminar cita desde admin");
-                return Json(new { success = false, message = "Error interno del servidor" });
-            }
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> ToggleUserStatus(long usuarioId)
-        {
-            try
-            {
-                var usuario = await _context.Usuarios.FindAsync(usuarioId);
-                if (usuario == null)
-                {
-                    return Json(new { success = false, message = "Usuario no encontrado" });
-                }
-
-                usuario.activo = !usuario.activo;
-                // Note: Usuario model doesn't have actualizada_el field, using existing fields
-
-                await _context.SaveChangesAsync();
-
-                return Json(new { 
-                    success = true, 
-                    message = $"Usuario {(usuario.activo ? "activado" : "desactivado")} correctamente",
-                    newStatus = usuario.activo 
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al cambiar estado de usuario");
-                return Json(new { success = false, message = "Error interno del servidor" });
+                _logger.LogError(ex, "Error eliminando cita admin");
+                return Json(new { success = false });
             }
         }
 
         [HttpGet]
         public async Task<IActionResult> GetDashboardStats()
         {
-            try
+            var fechaInicio = DateTime.Today.AddDays(-7);
+            var fechaFin = DateTime.Today.AddDays(1);
+            var stats = new
             {
-                var fechaInicio = DateTime.Today.AddDays(-7);
-                var fechaFin = DateTime.Today.AddDays(1);
-
-                var stats = new
-                {
-                    citasHoy = await _context.Citas.CountAsync(c => c.fecha.Date == DateTime.Today),
-                    citasSemana = await _context.Citas.CountAsync(c => c.fecha >= fechaInicio && c.fecha < fechaFin),
-                    nuevosUsuarios = await _context.Usuarios.CountAsync(u => u.creado_el >= fechaInicio),
-                    doctoresActivos = await _context.Doctores.CountAsync(d => d.Usuario.activo),
-                    pacientesTotal = await _context.Pacientes.CountAsync(),
-                    especialidadesTotal = await _context.Especialidades.CountAsync()
-                };
-
-                return Json(stats);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al obtener estadísticas del dashboard");
-                return Json(new { error = "Error al cargar estadísticas" });
-            }
+                citasHoy = await _context.Citas.CountAsync(c => c.fecha.Date == DateTime.Today),
+                citasSemana = await _context.Citas.CountAsync(c => c.fecha >= fechaInicio && c.fecha < fechaFin),
+                nuevosUsuarios = await _context.Usuarios.CountAsync(u => u.creado_el >= fechaInicio),
+                doctoresActivos = await _context.Doctores.CountAsync(d => d.Usuario.activo),
+                pacientesTotal = await _context.Pacientes.CountAsync(),
+                especialidadesTotal = await _context.Especialidades.CountAsync()
+            };
+            return Json(stats);
         }
 
-        // Obtener notificaciones del administrador
         [HttpGet]
         public async Task<IActionResult> GetNotificaciones()
         {
-            try
-            {
-                // Obtener las notificaciones más recientes del sistema
-                var notificaciones = await _context.Notificaciones
-                    .OrderByDescending(n => n.enviada_el)
-                    .Take(50)
-                    .Select(n => new
-                    {
-                        id = n.id,
-                        asunto = n.asunto,
-                        mensaje = n.mensaje,
-                        leida = n.leida,
-                        fecha = n.enviada_el.ToString("dd/MM/yyyy HH:mm")
-                    })
-                    .ToListAsync();
-
-                return Json(notificaciones);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al obtener notificaciones del administrador");
-                return Json(new List<object>());
-            }
+            var notificaciones = await _context.Notificaciones
+                .OrderByDescending(n => n.enviada_el).Take(50)
+                .Select(n => new { n.id, n.asunto, n.mensaje, n.leida, fecha = n.enviada_el.ToString("dd/MM/yyyy HH:mm") })
+                .ToListAsync();
+            return Json(notificaciones);
         }
 
-        // Marcar notificación como leída
         [HttpPost]
         public async Task<IActionResult> MarcarNotificacionLeida(long notificacionId)
         {
-            try
+            var notificacion = await _context.Notificaciones.FindAsync(notificacionId);
+            if (notificacion != null)
             {
-                var notificacion = await _context.Notificaciones.FindAsync(notificacionId);
-                if (notificacion != null)
-                {
-                    notificacion.leida = true;
-                    await _context.SaveChangesAsync();
-                    return Json(new { success = true });
-                }
-                return Json(new { success = false, message = "Notificación no encontrada" });
+                notificacion.leida = true;
+                await _context.SaveChangesAsync();
+                return Json(new { success = true });
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al marcar notificación como leída");
-                return Json(new { success = false, message = "Error interno" });
-            }
+            return Json(new { success = false });
         }
 
-        // MÉTODOS AUXILIARES
-        private string GetColorByEstado(string estado)
-        {
-            return estado?.ToUpperInvariant() switch
-            {
-                "PENDIENTE" => "#f59e0b",      // Amber
-                "CONFIRMADA" => "#10b981",     // Emerald
-                "COMPLETADA" => "#3b82f6",     // Blue
-                "CANCELADA" => "#ef4444",      // Red
-                _ => "#6b7280"                 // Gray
-            };
-        }
-
-        private async Task<Usuario?> ObtenerAdministradorActual()
-        {
-            var nombreUsuario = User.Identity?.Name;
-            if (string.IsNullOrEmpty(nombreUsuario))
-                return null;
-
-            return await _context.Usuarios
-                .FirstOrDefaultAsync(u => u.usuario == nombreUsuario && u.rol == "Administrador");
-        }
-
+        // ==========================================
         // RESPALDOS DE BASE DE DATOS
+        // ==========================================
+
         [HttpGet]
-        public async Task<IActionResult> Backups()
+        // CAMBIO: Se recibe parámetro de página para la paginación
+        public async Task<IActionResult> Backups(int page = 1)
         {
-            var config = await _backupService.GetOrCreateConfigurationAsync();
-            var history = await _backupService.GetHistoryAsync(50);
+            const int pageSize = 5; // 5 por página como pediste
+
+            // Recuperamos historial suficiente (ej. 100) para paginar
+            var fullHistory = await _backupService.GetHistoryAsync(100);
+
+            var totalItems = fullHistory.Count;
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            // Ajustar página actual a rangos válidos
+            page = Math.Max(1, Math.Min(page, totalPages > 0 ? totalPages : 1));
+
+            // Paginación en memoria
+            var pagedHistory = fullHistory
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
 
             var viewModel = new DatabaseBackupPageViewModel
             {
-                Config = DatabaseBackupConfigViewModel.FromEntity(config),
-                History = history
+                Config = new DatabaseBackupConfigViewModel(),
+                History = pagedHistory,
+                CurrentPage = page,
+                TotalPages = totalPages
             };
 
             return View(viewModel);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ActualizarBackupConfig(DatabaseBackupConfigViewModel model)
-        {
-            if (!TimeSpan.TryParse(model.AutoBackupTime, out var parsedTime))
-            {
-                ModelState.AddModelError(nameof(model.AutoBackupTime), "La hora debe tener el formato HH:mm");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                var history = await _backupService.GetHistoryAsync(50);
-                return View("Backups", new DatabaseBackupPageViewModel
-                {
-                    Config = model,
-                    History = history,
-                    LastError = "Revisa la información introducida."
-                });
-            }
-
-            var config = await _backupService.GetOrCreateConfigurationAsync();
-            config.backup_directory = model.BackupDirectory;
-            config.auto_backup_enabled = model.AutoBackupEnabled;
-            config.auto_backup_time = parsedTime;
-            config.retention_days = model.RetentionDays;
-
-            await _backupService.UpdateConfigurationAsync(config);
-            TempData["SuccessMessage"] = "Configuración de respaldos actualizada correctamente.";
-            return RedirectToAction(nameof(Backups));
         }
 
         [HttpPost]
@@ -626,13 +495,22 @@ namespace CitaFacil.Controllers
 
             if (resultado.Success)
             {
-                TempData["SuccessMessage"] = $"Respaldo generado en: {resultado.FileName}";
+                try
+                {
+                    var fileBytes = await System.IO.File.ReadAllBytesAsync(resultado.FilePath);
+                    var fileName = Path.GetFileName(resultado.FilePath);
+                    return File(fileBytes, "application/octet-stream", fileName);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error al descargar el respaldo");
+                    TempData["ErrorMessage"] = "Error al descargar el archivo: " + ex.Message;
+                }
             }
             else
             {
                 TempData["ErrorMessage"] = resultado.Message;
             }
-
             return RedirectToAction(nameof(Backups));
         }
 
@@ -642,17 +520,16 @@ namespace CitaFacil.Controllers
         {
             if (archivoRespaldo == null || archivoRespaldo.Length == 0)
             {
-                TempData["ErrorMessage"] = "Selecciona un archivo .bak para restaurar.";
+                TempData["ErrorMessage"] = "Debes seleccionar un archivo .bak válido.";
                 return RedirectToAction(nameof(Backups));
             }
 
-            var config = await _backupService.GetOrCreateConfigurationAsync();
-            var destino = Path.Combine(config.backup_directory, $"restore_{DateTime.UtcNow:yyyyMMddHHmmss}_{Path.GetFileName(archivoRespaldo.FileName)}");
+            var folder = Path.GetTempPath();
+            var destino = Path.Combine(folder, $"restore_{DateTime.UtcNow.Ticks}_{Path.GetFileName(archivoRespaldo.FileName)}");
 
             try
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(destino)!);
-                await using (var stream = System.IO.File.Create(destino))
+                using (var stream = new FileStream(destino, FileMode.Create))
                 {
                     await archivoRespaldo.CopyToAsync(stream);
                 }
@@ -661,7 +538,7 @@ namespace CitaFacil.Controllers
 
                 if (resultado.Success)
                 {
-                    TempData["SuccessMessage"] = "La base de datos se restauró correctamente. Se recomienda reiniciar la aplicación.";
+                    TempData["SuccessMessage"] = "Base de datos restaurada correctamente.";
                 }
                 else
                 {
@@ -670,82 +547,41 @@ namespace CitaFacil.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al restaurar la base de datos desde el archivo cargado.");
-                TempData["ErrorMessage"] = "Ocurrió un error al procesar el archivo de respaldo.";
+                _logger.LogError(ex, "Error crítico al restaurar DB");
+                TempData["ErrorMessage"] = "Ocurrió un error al procesar el archivo.";
+            }
+            finally
+            {
+                if (System.IO.File.Exists(destino))
+                {
+                    try { System.IO.File.Delete(destino); } catch { }
+                }
             }
 
             return RedirectToAction(nameof(Backups));
         }
 
-        [HttpGet]
-        public IActionResult ListarDirectorios(string? path = null)
+        // HELPERS
+        private string GetColorByEstado(string estado) => estado?.ToUpperInvariant() switch
         {
-            try
-            {
-                var basePath = string.IsNullOrWhiteSpace(path)
-                    ? Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.System)) ?? "C:\\"
-                    : path;
+            "PENDIENTE" => "#f59e0b",
+            "CONFIRMADA" => "#10b981",
+            "COMPLETADA" => "#3b82f6",
+            "CANCELADA" => "#ef4444",
+            _ => "#6b7280"
+        };
 
-                var normalized = Path.GetFullPath(basePath);
-                var parent = Directory.GetParent(normalized)?.FullName;
-
-                var directories = new List<object>();
-                if (Directory.Exists(normalized))
-                {
-                    directories = Directory
-                        .GetDirectories(normalized)
-                        .OrderBy(d => d, StringComparer.OrdinalIgnoreCase)
-                        .Select(d => (object)new
-                        {
-                            name = string.IsNullOrWhiteSpace(Path.GetFileName(d)) ? d : Path.GetFileName(d),
-                            path = d
-                        })
-                        .ToList();
-                }
-
-                return Json(new
-                {
-                    success = true,
-                    currentPath = normalized,
-                    parentPath = parent,
-                    directories
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Error al listar directorios para la ruta {Path}", path);
-                return Json(new { success = false, message = "No se pudo acceder a la carpeta solicitada. Verifica permisos o intenta con otra ruta." });
-            }
-        }
-
-        [HttpGet]
-        public IActionResult ValidarCarpeta(string? path)
+        private async Task<Usuario?> ObtenerAdministradorActual()
         {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(path))
-                {
-                    return Json(new { success = false, message = "Selecciona una carpeta válida." });
-                }
-
-                var normalized = Path.GetFullPath(path);
-                Directory.CreateDirectory(normalized);
-
-                return Json(new { success = true, path = normalized });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Error al validar la ruta de respaldo {Path}", path);
-                return Json(new { success = false, message = "No se pudo validar la carpeta. Asegurate de que la ruta sea accesible por el servidor." });
-            }
+            var nombre = User.Identity?.Name;
+            if (string.IsNullOrEmpty(nombre)) return null;
+            return await _context.Usuarios.FirstOrDefaultAsync(u => u.usuario == nombre && u.rol == Roles.Administrador);
         }
     }
-}
 
-// MODELOS PARA ADMINISTRACIÓN
-public class UpdateCitaStatusModel
-{
-    public string Estado { get; set; } = "";
-    public string? Motivo { get; set; }
+    public class UpdateCitaStatusModel
+    {
+        public string Estado { get; set; } = "";
+        public string? Motivo { get; set; }
+    }
 }
-

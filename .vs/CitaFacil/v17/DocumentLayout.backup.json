@@ -1,12 +1,101 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "C:\\Users\\bryan\\Downloads\\CitaFacil\\",
-  "Documents": [],
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{71E2D36D-2BD0-4DF1-887D-4C4236DF29AD}|CitaFacil\\CitaFacil.csproj|c:\\users\\bryan\\downloads\\citafacil\\citafacil\\views\\admin\\backups.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{71E2D36D-2BD0-4DF1-887D-4C4236DF29AD}|CitaFacil\\CitaFacil.csproj|solutionrelative:citafacil\\views\\admin\\backups.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{71E2D36D-2BD0-4DF1-887D-4C4236DF29AD}|CitaFacil\\CitaFacil.csproj|c:\\users\\bryan\\downloads\\citafacil\\citafacil\\controllers\\admincontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{71E2D36D-2BD0-4DF1-887D-4C4236DF29AD}|CitaFacil\\CitaFacil.csproj|solutionrelative:citafacil\\controllers\\admincontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{71E2D36D-2BD0-4DF1-887D-4C4236DF29AD}|CitaFacil\\CitaFacil.csproj|c:\\users\\bryan\\downloads\\citafacil\\citafacil\\viewmodels\\admin\\databasebackuppageviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{71E2D36D-2BD0-4DF1-887D-4C4236DF29AD}|CitaFacil\\CitaFacil.csproj|solutionrelative:citafacil\\viewmodels\\admin\\databasebackuppageviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{71E2D36D-2BD0-4DF1-887D-4C4236DF29AD}|CitaFacil\\CitaFacil.csproj|c:\\users\\bryan\\downloads\\citafacil\\citafacil\\views\\shared\\_adminlayout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{71E2D36D-2BD0-4DF1-887D-4C4236DF29AD}|CitaFacil\\CitaFacil.csproj|solutionrelative:citafacil\\views\\shared\\_adminlayout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{71E2D36D-2BD0-4DF1-887D-4C4236DF29AD}|CitaFacil\\CitaFacil.csproj|c:\\users\\bryan\\downloads\\citafacil\\citafacil\\views\\shared\\_loginlayout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{71E2D36D-2BD0-4DF1-887D-4C4236DF29AD}|CitaFacil\\CitaFacil.csproj|solutionrelative:citafacil\\views\\shared\\_loginlayout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
       "VerticalTabListWidth": 256,
-      "DocumentGroups": []
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "DatabaseBackupPageViewModel.cs",
+              "DocumentMoniker": "C:\\Users\\bryan\\Downloads\\CitaFacil\\CitaFacil\\ViewModels\\Admin\\DatabaseBackupPageViewModel.cs",
+              "RelativeDocumentMoniker": "CitaFacil\\ViewModels\\Admin\\DatabaseBackupPageViewModel.cs",
+              "ToolTip": "C:\\Users\\bryan\\Downloads\\CitaFacil\\CitaFacil\\ViewModels\\Admin\\DatabaseBackupPageViewModel.cs",
+              "RelativeToolTip": "CitaFacil\\ViewModels\\Admin\\DatabaseBackupPageViewModel.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-26T02:01:52.44Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "AdminController.cs",
+              "DocumentMoniker": "C:\\Users\\bryan\\Downloads\\CitaFacil\\CitaFacil\\Controllers\\AdminController.cs",
+              "RelativeDocumentMoniker": "CitaFacil\\Controllers\\AdminController.cs",
+              "ToolTip": "C:\\Users\\bryan\\Downloads\\CitaFacil\\CitaFacil\\Controllers\\AdminController.cs",
+              "RelativeToolTip": "CitaFacil\\Controllers\\AdminController.cs",
+              "ViewState": "AgIAADcCAAAAAAAAAAAAAEoCAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-26T00:42:12.948Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Backups.cshtml",
+              "DocumentMoniker": "C:\\Users\\bryan\\Downloads\\CitaFacil\\CitaFacil\\Views\\Admin\\Backups.cshtml",
+              "RelativeDocumentMoniker": "CitaFacil\\Views\\Admin\\Backups.cshtml",
+              "ToolTip": "C:\\Users\\bryan\\Downloads\\CitaFacil\\CitaFacil\\Views\\Admin\\Backups.cshtml",
+              "RelativeToolTip": "CitaFacil\\Views\\Admin\\Backups.cshtml",
+              "ViewState": "AgIAAHAAAAAAAAAAAAAAAK8AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-11-26T00:46:07.763Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "_AdminLayout.cshtml",
+              "DocumentMoniker": "C:\\Users\\bryan\\Downloads\\CitaFacil\\CitaFacil\\Views\\Shared\\_AdminLayout.cshtml",
+              "RelativeDocumentMoniker": "CitaFacil\\Views\\Shared\\_AdminLayout.cshtml",
+              "ToolTip": "C:\\Users\\bryan\\Downloads\\CitaFacil\\CitaFacil\\Views\\Shared\\_AdminLayout.cshtml",
+              "RelativeToolTip": "CitaFacil\\Views\\Shared\\_AdminLayout.cshtml",
+              "ViewState": "AgIAAHwAAAAAAAAAAAAiwK4AAAAHAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-11-26T01:10:19.919Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "_LoginLayout.cshtml",
+              "DocumentMoniker": "C:\\Users\\bryan\\Downloads\\CitaFacil\\CitaFacil\\Views\\Shared\\_LoginLayout.cshtml",
+              "RelativeDocumentMoniker": "CitaFacil\\Views\\Shared\\_LoginLayout.cshtml",
+              "ToolTip": "C:\\Users\\bryan\\Downloads\\CitaFacil\\CitaFacil\\Views\\Shared\\_LoginLayout.cshtml",
+              "RelativeToolTip": "CitaFacil\\Views\\Shared\\_LoginLayout.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACcAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-11-26T01:57:28.675Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

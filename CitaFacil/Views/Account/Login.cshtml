@@ -3,61 +3,65 @@
 @{
     Layout = "_LoginLayout";
     ViewData["Title"] = "Iniciar sesión";
+    // NO definimos ViewData["UseWideLayout"], por lo que usará el layout angosto por defecto (480px)
 }
 
-<div class="flex flex-col items-center justify-center mb-8 login-shell">
-    <a asp-controller="Home" asp-action="Index" class="flex flex-col items-center group transition-opacity duration-300">
-        <svg class="w-16 h-16 text-primary group-hover:opacity-80" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path clip-rule="evenodd" d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z" fill-rule="evenodd"></path>
-        </svg>
-        <p class="text-4xl font-bold leading-tight tracking-tighter mt-4 text-center group-hover:text-primary">CitaFácil</p>
-    </a>
-</div>
-
-<div class="flex flex-wrap justify-between gap-3 p-4 text-center">
-    <div class="flex w-full flex-col gap-2">
-        <p class="text-4xl font-black leading-tight tracking-[-0.033em]">¡Bienvenido de nuevo!</p>
-        <p class="text-base font-normal leading-normal">Introduce tus datos para continuar.</p>
+<div class="flex w-full flex-col items-center rounded-3xl bg-white p-8 shadow-xl md:p-12">
+    <div class="mb-8 flex flex-col items-center">
+        <a asp-controller="Home" asp-action="Index" class="group flex flex-col items-center transition-all hover:opacity-90">
+            <div class="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-sm transition group-hover:scale-110 group-hover:bg-primary group-hover:text-white">
+                <span class="material-symbols-outlined text-3xl">health_and_safety</span>
+            </div>
+            <h1 class="text-3xl font-black tracking-tight text-slate-800">CitaFácil</h1>
+        </a>
+        <p class="mt-2 text-center text-slate-500">Bienvenido de nuevo, ingresa tus credenciales.</p>
     </div>
-</div>
 
-<form asp-controller="Account" asp-action="Login" method="post" class="flex max-w-[480px] flex-col gap-4 px-4 py-3 login-form">
-    @Html.AntiForgeryToken()
+    <form asp-controller="Account" asp-action="Login" method="post" class="w-full space-y-5">
+        @Html.AntiForgeryToken()
 
-    <div asp-validation-summary="ModelOnly" class="text-accent-error text-sm p-2 rounded-lg bg-accent-error/10"></div>
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div asp-validation-summary="ModelOnly" class="rounded-xl border border-red-100 bg-red-50 p-3 text-center text-sm font-medium text-red-600"></div>
+        }
 
-    <label asp-for="identificador" class="flex flex-col min-w-40 flex-1">
-        <span class="text-base font-medium leading-normal pb-2">Correo o usuario</span>
-        <input asp-for="identificador" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg focus:outline-0 focus:ring-0 border-none bg-zinc-100 dark:bg-zinc-800 h-14 placeholder:text-zinc-500 dark:placeholder:text-zinc-400 p-4 text-base font-normal leading-normal" placeholder="ejemplo@correo.com" />
-        <span asp-validation-for="identificador" class="text-accent-error text-sm mt-1"></span>
-    </label>
-
-    <label asp-for="contraseña" class="flex flex-col min-w-40 flex-1">
-        <span class="text-base font-medium leading-normal pb-2">Contraseña</span>
-        <div class="flex w-full flex-1 items-stretch rounded-lg">
-            <input asp-for="contraseña" id="password-input" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg focus:outline-0 focus:ring-0 border-none bg-zinc-100 dark:bg-zinc-800 h-14 placeholder:text-zinc-500 dark:placeholder:text-zinc-400 p-4 rounded-r-none border-r-0 pr-2 text-base font-normal leading-normal" placeholder="Ingresa tu contraseña" />
-            <button type="button" id="password-toggle" class="flex border-none bg-zinc-100 dark:bg-zinc-800 items-center justify-center px-4 rounded-r-lg border-l-0 text-zinc-500 dark:text-zinc-400">
-                <span class="material-symbols-outlined">visibility</span>
-            </button>
+        <div class="space-y-1">
+            <label asp-for="identificador" class="ml-1 text-sm font-bold text-slate-700">Usuario o Correo</label>
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
+                    <span class="material-symbols-outlined text-xl">person</span>
+                </span>
+                <input asp-for="identificador" class="form-input h-12 w-full rounded-xl border-slate-200 bg-slate-50 pl-11 focus:border-primary focus:bg-white focus:ring-primary" placeholder="ejemplo@correo.com" />
+            </div>
+            <span asp-validation-for="identificador" class="ml-1 text-xs text-red-500"></span>
         </div>
-        <span asp-validation-for="contraseña" class="text-accent-error text-sm mt-1"></span>
-    </label>
 
-    <div class="flex items-center justify-center px-4">
-        <a asp-controller="Account" asp-action="ProtoLogin" class="text-sm font-medium leading-normal text-primary hover:underline">¿Olvidaste tu contraseña?</a>
-    </div>
+        <div class="space-y-1">
+            <div class="flex items-center justify-between px-1">
+                <label asp-for="contraseña" class="text-sm font-bold text-slate-700">Contraseña</label>
+                <a asp-action="ProtoLogin" class="text-xs font-semibold text-primary hover:text-primary-dark hover:underline">¿Olvidaste tu contraseña?</a>
+            </div>
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
+                    <span class="material-symbols-outlined text-xl">lock</span>
+                </span>
+                <input asp-for="contraseña" id="password-input" type="password" class="form-input h-12 w-full rounded-xl border-slate-200 bg-slate-50 pl-11 pr-12 focus:border-primary focus:bg-white focus:ring-primary" placeholder="••••••••" />
+                <button type="button" id="password-toggle" class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 transition hover:text-slate-600 focus:outline-none">
+                    <span class="material-symbols-outlined text-xl">visibility</span>
+                </button>
+            </div>
+            <span asp-validation-for="contraseña" class="ml-1 text-xs text-red-500"></span>
+        </div>
 
-    <div class="flex px-4 py-3">
-        <button type="submit" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-14 px-5 flex-1 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em]">
-            <span class="truncate">Iniciar sesión</span>
+        <button type="submit" class="mt-4 flex h-12 w-full items-center justify-center rounded-xl bg-primary font-bold text-white shadow-lg shadow-primary/20 transition hover:bg-primary-dark hover:shadow-primary/40 active:scale-[0.98]">
+            Iniciar Sesión
         </button>
-    </div>
-</form>
+    </form>
 
-<div class="text-center mt-6 px-4">
-    <p class="text-base text-zinc-500 dark:text-zinc-400">
-        ¿No tienes una cuenta? <a asp-action="Register" class="font-medium text-primary hover:underline">Regístrate aquí</a>
-    </p>
+    <div class="mt-8 text-center text-sm text-slate-500">
+        ¿Aún no tienes cuenta?
+        <a asp-action="Register" class="font-bold text-primary hover:text-primary-dark hover:underline">Regístrate aquí</a>
+    </div>
 </div>
 
 @section Scripts {
@@ -78,9 +82,7 @@
             }
         });
     </script>
-
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 }
-

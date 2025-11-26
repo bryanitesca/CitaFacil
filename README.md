@@ -28,7 +28,7 @@ Aplicación web para la gestión integral de citas médicas. Permite a pacientes
 
 1. **Clonar el repositorio**
    ```bash
-   git clone https://github.com/tu-organizacion/CitaFacil.git
+   git clone https://github.com/bryanitesca/CitaFacil.git
    cd CitaFacil
    ```
 
@@ -84,15 +84,15 @@ Aplicación web para la gestión integral de citas médicas. Permite a pacientes
   ```
 - El seeding inicial (`Data/Seed/DataSeeder.cs`) crea cuentas de muestra para cada rol junto con pacientes, doctores y citas.
 
-## Respaldos automáticos y restauración
+## Respaldos y restauración
 
 El módulo `Admin → Respaldos` permite:
 
 - Configurar la carpeta de destino, horario y retención de archivos (`appsettings.json` provee valores por defecto a través de la sección `DatabaseBackup`).
-- Generar respaldos manuales y programar respaldos automáticos (servicio `DatabaseBackupHostedService`).  
+- Generar respaldos manuales (servicio `DatabaseBackupHostedService`).  
 - Restaurar la base de datos subiendo un archivo `.bak`. El proceso ejecuta comandos `BACKUP/RESTORE` reales sobre SQL Server; se recomienda ejecutarlo en horarios de mantenimiento por el modo de usuario único temporal.
 
-Los archivos se almacenan en la ruta configurada y se registra un historial en la tabla `database_backup_history`.
+Los archivos .bak se descargan en la carpeta "default" de descargas y se registra un historial de restauración `database_backup_history`.
 
 ## Estructura principal
 
@@ -112,7 +112,3 @@ CitaFacil/
 - Los roles y cuentas sembradas se encuentran en `Data/Seed/DataSeeder.cs`. Ajusta las contraseñas o crea usuarios manualmente desde el panel de administración.
 - El flujo de agendado para pacientes reutiliza la experiencia de calendario del doctor, asegurando una selección intuitiva con validación de citas a +1 día.
 - Las notificaciones se almacenan en la tabla `notificaciones` y se consumen internamente (sin SMTP).
-
-
-
-"# prueba" 
