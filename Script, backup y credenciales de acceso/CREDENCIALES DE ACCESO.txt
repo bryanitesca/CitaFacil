@@ -1,0 +1,15 @@
+CREDENCIALES DE ACCESO:
+Administrador:
+Usuario: admin
+Contraseña: Admin123!
+Doctores:
+Usuario: dr.martinez | Contraseña: Doctor123!
+Usuario: dr.rodriguez | Contraseña: Doctor123!
+Usuario: dr.garcia | Contraseña: Doctor123!
+Pacientes:
+Usuario: juan.perez | Contraseña: Paciente123!
+Usuario: maria.lopez | Contraseña: Paciente123!
+Usuario: carlos.gomez | Contraseña: Paciente123!
+Usuario: ana.torres | Contraseña: Paciente123!
+Usuario: pedro.sanchez | Contraseña: Paciente123!
+
